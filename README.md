@@ -24,16 +24,13 @@ Work with branching:
     git checkout develop
     git pull origin develop
     git checkout -b feature/new-feature
-     ```
-  3) Add new feature:
+  2) Add new feature:
      ```bash
     git add .
     git commit -m "New feature for..."
-    ```
   3) Commit changes to repo:
      ```bash
     git push origin feature/new-feature
-     ```
   4) Pull request and merge into develop
   5) Merge develop into main:
      ```bash
@@ -41,4 +38,3 @@ Work with branching:
     git checkout main
     git merge develop
     git push origin main
-    ```
