@@ -2,20 +2,27 @@
 IoT system with cloud for controlling air, tempreture and salt of water.
 
 Branch strategy:
+
 Create new bracnhes on develop. templates for branches:
+
 New features: 
   feature/new-feature
+
 Test environment:
   test/tested-feature
+
 Production(fixing bugs in production):
   hotfix/bug-name
 
 Clone to your computer: git clone https://github.com/KrupskyiD/aquarium.git
 
 Stack: 
-  Web: JS, React, Node.Js + Express.js
-  Database: InfluxDB
-  IoT:
+
+Web: JS, React, Node.Js + Express.js
+
+Database: InfluxDB
+
+IoT:
 
 Working with branches
 1) Create new branch
