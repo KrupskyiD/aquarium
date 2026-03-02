@@ -20,11 +20,12 @@ Stack:
 Work with branching:
   1) Create new branch:
     ```bash
+
     git checkout develop
     git pull origin develop
     git checkout -b feature/new-feature
      ```
-  2) Add new feature:
+  3) Add new feature:
      ```bash
     git add .
     git commit -m "New feature for..."
