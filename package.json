@@ -1,0 +1,30 @@
+{
+  "name": "aquarium",
+  "version": "1.0.0",
+  "description": "IoT system with cloud for controlling air, tempreture and salt of water.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KrupskyiD/aquarium.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/KrupskyiD/aquarium/issues"
+  },
+  "homepage": "https://github.com/KrupskyiD/aquarium#readme",
+  "dependencies": {
+    "@prisma/client": "^7.6.0",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14",
+    "prisma": "^7.6.0"
+  }
+}

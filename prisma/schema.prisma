@@ -1,0 +1,10 @@
+model Metric {
+  id          Int      @id @default(autoincrement())
+  aquarium_id Int
+  temperature Decimal  @db.Decimal
+  salinity    Decimal  @db.Decimal
+  created_at  DateTime @default(now())
+  aquarium    Aquarium @relation(fields: [aquarium_id], references: [id], onDelete: Cascade)
+
+  @@map("metrics")
+}
