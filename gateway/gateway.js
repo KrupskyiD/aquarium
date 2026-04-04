@@ -21,7 +21,7 @@ port.pipe(parser);
 parser.on('data',async function(data){
 
     try {
-        const parsedData = data.split(':');
+        const parsedData = data.split(',');
 
         if(parsedData.length === 2) {
            const dataObject = {
