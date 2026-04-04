@@ -53,36 +53,3 @@ export const getMetrics = async (req, res) => {
     });
   }
 };
-
-export const createMetric = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { temperature, salinity } = req.body;
-
-    if (temperature === undefined || salinity === undefined) {
-      return res.status(400).json({
-        status: "error",
-        message: "Temperature and salinity are required",
-      });
-    }
-
-    const metric = await prisma.metrics.create({
-      data: {
-        aquarium_id: parseInt(id),
-        temperature,
-        salinity,
-      },
-    });
-
-    res.status(201).json({
-      status: "success",
-      data: metric,
-    });
-  } catch (e) {
-    console.log(`Error creating metric: ${e}`);
-    res.status(500).json({
-      status: "error",
-      message: "Cannot save metric",
-    });
-  }
-};
