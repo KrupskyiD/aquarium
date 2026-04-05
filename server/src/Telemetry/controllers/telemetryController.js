@@ -1,7 +1,9 @@
-import { asyncErrorHandler } from '../../ErrorHandlers/asyncErrorHandler';
-import io from '../../../index';
+import asyncErrorHandler from '../../ErrorHandlers/asyncErrorHandler.js';
+import {io} from '../../../index.js';
+import telemetryPrisma from '../model/telemetryPrisma.js'
 
-export default telemetry = asyncErrorHandler(async (req, res, next) => {
+
+export const telemetryController = asyncErrorHandler(async (req, res, next) => {
     //getting the data object from gateway 
     const data = req.body;
 
@@ -12,8 +14,11 @@ export default telemetry = asyncErrorHandler(async (req, res, next) => {
     };
 
     //send metricks to client to endpoint 'dashboard-metricks' 
-    io.emit('dashboard-metricks', metrics);
-    res.sendStatus(200);
+    // io.emit('dashboard-metricks', metrics);
+    // res.sendStatus(200);
 
-    //space for saving new data
+    //saving new data and return a status
+    const savingMetrics = await telemetryPrisma(data);
+    res.status(201).json(savingMetrics);
 })
+
