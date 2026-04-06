@@ -13,7 +13,7 @@ export const telemetryController = asyncErrorHandler(async (req, res, next) => {
     };
 
     // send metricks to client to endpoint 'dashboard-metricks' 
-    getIO.emit('dashboard-metricks', metrics);
+    getIO().emit('dashboard-metricks', metrics);
     res.sendStatus(200);
 
     //saving new data and return a status
