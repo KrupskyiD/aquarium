@@ -1,30 +1,22 @@
 import "dotenv/config";
 import express from "express";
 const app = express();
-import aquariumRoutes from "./src/routes/aquariumRoutes.js";
-import cors from 'cors'
-import {Server} from 'socket.io'
 import http from 'http'
+import cors from 'cors'
+import { startSocket } from "./Socket/socket.js";
 import telemetryRoute from './src/Telemetry/routes/telemetry.js'
+import aquariumRoutes from "./src/routes/aquariumRoutes.js";
 
 app.use(cors());
 app.use(express.json());
 const server = http.createServer(app);
 
-export const io = new Server(server,{
-    cors:{
-        origin: 'http://localhost:3000',
-        methods: ['GET', 'POST', 'UPDATE', 'DELETE'],
-    },
-});
 
-io.on('connection', (socket) => {
-        
-    })
+//Start socket server for working with endpoints and arduino data
+startSocket(server);
+
 
 app.use('/api/telemetry', telemetryRoute);
-
-
 
 app.use("/api/aquarium", aquariumRoutes);
 

@@ -15,7 +15,7 @@ export default async (data) => {
             },
             temperature: temperature,
             salinity: salt,
-            //saving date, which was created at gateway or arduino layer
+            //saving date, which was created at gateway or arduino layer. Perhaps will be implemented later
             //created_at: timestamp,
         }
     });
