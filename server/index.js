@@ -4,9 +4,9 @@ const app = express();
 import http from "http";
 import cors from "cors";
 import { startSocket } from "./Socket/socket.js";
-import telemetryRoute from "./src/Telemetry/routes/telemetry.js";
-import aquariumRoutes from "./src/routes/aquariumRoutes.js";
-import authRoutes from "./src/routes/authRoutes.js";
+import telemetryRoute from "./src/Telemetry/routes/telemetryRoutes.js";
+import metricsRoutes from "./src/Metrics/routes/metricsRoutes.js";
+import authRoutes from "./src/User/routes/authRoutes.js";
 
 app.use(cors());
 app.use(express.json());
@@ -17,7 +17,7 @@ startSocket(server);
 
 app.use("/api/telemetry", telemetryRoute);
 app.use("/api/auth", authRoutes);
-app.use("/api/aquarium", aquariumRoutes);
+app.use("/api/aquarium", metricsRoutes);
 
 const PORT = process.env.PORT;
 

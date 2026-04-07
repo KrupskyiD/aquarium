@@ -1,4 +1,4 @@
-import prisma from "../../utils/prisma.js";
+import { getMetricsFromDB } from "../model/metricsPrisma.js";
 
 export const getMetrics = async (req, res) => {
   try {
@@ -22,18 +22,7 @@ export const getMetrics = async (req, res) => {
       });
     }
 
-    const hours = period === "30" ? 30 * 24 : period === "7" ? 7 * 24 : 24;
-    const since = new Date(Date.now() - hours * 60 * 60 * 1000);
-
-    const result = await prisma.metrics.aggregate({
-      where: {
-        aquarium_id: parseInt(id),
-        created_at: { gte: since },
-      },
-      _min: { [sensor]: true },
-      _max: { [sensor]: true },
-      _avg: { [sensor]: true },
-    });
+    const result = await getMetricsFromDB(id, period, sensor);
 
     res.status(200).json({
       status: "success",

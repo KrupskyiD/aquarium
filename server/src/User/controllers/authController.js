@@ -1,8 +1,15 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import prisma from "../utils/prisma.js";
-import { sendVerificationEmail } from "../utils/mailer.js";
+import {
+  findUserByEmail,
+  createUser,
+  createVerificationToken,
+  findVerificationToken,
+  deleteVerificationToken,
+  updateUserVerification,
+} from "../model/userPrisma.js";
+import { sendVerificationEmail } from "../../utils/mailer.js";
 
 export const register = async (req, res) => {
   try {
@@ -15,9 +22,7 @@ export const register = async (req, res) => {
       });
     }
 
-    const existingUser = await prisma.users.findUnique({
-      where: { email },
-    });
+    const existingUser = await findUserByEmail(email);
 
     if (existingUser) {
       return res.status(400).json({
@@ -28,23 +33,19 @@ export const register = async (req, res) => {
 
     const password_hash = await bcrypt.hash(password, 10);
 
-    const user = await prisma.users.create({
-      data: {
-        name,
-        email,
-        password_hash,
-      },
+    const user = await createUser({
+      name,
+      email,
+      password_hash,
     });
 
     const token = crypto.randomBytes(32).toString("hex");
     const expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    await prisma.verification_token.create({
-      data: {
-        token,
-        user_id: user.id,
-        expires_at,
-      },
+    await createVerificationToken({
+      token,
+      user_id: user.id,
+      expires_at,
     });
 
     await sendVerificationEmail(email, token);
@@ -78,9 +79,7 @@ export const login = async (req, res) => {
       });
     }
 
-    const user = await prisma.users.findUnique({
-      where: { email },
-    });
+    const user = await findUserByEmail(email);
 
     if (!user) {
       return res.status(401).json({
@@ -142,9 +141,7 @@ export const verifyEmail = async (req, res) => {
       });
     }
 
-    const verificationToken = await prisma.verification_token.findUnique({
-      where: { token },
-    });
+    const verificationToken = await findVerificationToken(token);
 
     if (!verificationToken) {
       return res.status(400).json({
@@ -160,14 +157,9 @@ export const verifyEmail = async (req, res) => {
       });
     }
 
-    await prisma.users.update({
-      where: { id: verificationToken.user_id },
-      data: { is_verified: true },
-    });
+    await updateUserVerification(verificationToken.user_id, true);
 
-    await prisma.verification_token.delete({
-      where: { token },
-    });
+    await deleteVerificationToken(token);
 
     res.status(200).json({
       status: "success",

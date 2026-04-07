@@ -1,35 +1,27 @@
-import prisma from '../../utils/prisma.js'
+import prisma from "../../utils/prisma.js";
 
 //saving new metrics to table metrics
-export default async (data) => {
-    //bringinng up keys from data object
-    const { device_serial, temperature, salt, timestamp } = data;
+export const saveMetricsToDB = async (data) => {
+  //bringinng up keys from data object
+  const { device_serial, temperature, salt, timestamp } = data;
 
-    const newMetrics = prisma.metrics.create({
-        data: {
-            aquarium: {
-                //finding out aquarium_id by using connect, which will find the if by unique serial device :^
-                connect: {
-                    device_serial: device_serial
-                }
-            },
-            temperature: temperature,
-            salinity: salt,
-            //saving date, which was created at gateway or arduino layer. Perhaps will be implemented later
-            //created_at: timestamp,
-        }
-    });
+  const newMetrics = await prisma.metrics.create({
+    data: {
+      aquarium: {
+        //finding out aquarium_id by using connect, which will find the if by unique serial device :^
+        connect: {
+          device_serial: device_serial,
+        },
+      },
+      temperature: temperature,
+      salinity: salt,
+      //saving date, which was created at gateway or arduino layer. Perhaps will be implemented later
+      //created_at: timestamp,
+    },
+  });
 
-    return newMetrics;
+  return newMetrics;
 };
-
-
-
-
-
-
-
-
 
 //if it'll be needed in a future to do a two-step finding aquarium_id
 /** 
@@ -64,4 +56,4 @@ export const saveTelemetryToDB = async (data) => {
   // Возвращаем сохраненную запись
   return newMetric;
 };
- * */ 
+ * */
