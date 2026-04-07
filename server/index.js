@@ -1,10 +1,10 @@
 import "dotenv/config";
 import express from "express";
 const app = express();
-import http from 'http'
-import cors from 'cors'
+import http from "http";
+import cors from "cors";
 import { startSocket } from "./Socket/socket.js";
-import telemetryRoute from './src/Telemetry/routes/telemetry.js'
+import telemetryRoute from "./src/Telemetry/routes/telemetry.js";
 import aquariumRoutes from "./src/routes/aquariumRoutes.js";
 import authRoutes from "./src/routes/authRoutes.js";
 
@@ -15,7 +15,7 @@ const server = http.createServer(app);
 //Start socket server for working with endpoints and arduino data
 startSocket(server);
 
-app.use('/api/telemetry', telemetryRoute);
+app.use("/api/telemetry", telemetryRoute);
 app.use("/api/auth", authRoutes);
 app.use("/api/aquarium", aquariumRoutes);
 
