@@ -6,6 +6,9 @@ export const telemetryController = asyncErrorHandler(async (req, res, next) => {
     //getting the data object from gateway
     const data = req.body;
 
+    //saving new data and return a status
+    const savingMetrics = await saveMetricsToDB(data);
+
     //get only metricks from the package for sending to frontend
     const metrics = {
         temp: data.temperature,
@@ -15,7 +18,7 @@ export const telemetryController = asyncErrorHandler(async (req, res, next) => {
     // send metricks to client to endpoint 'dashboard-metricks'
     getIO().emit('dashboard-metricks', metrics);
 
-    //saving new data and return a status
-    const savingMetrics = await saveMetricsToDB(data);
+    //response to gateway
+    res.sendStatus(201);
 })
 
