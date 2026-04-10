@@ -8,7 +8,7 @@ import { startSocket } from "./Socket/socket.js";
 //import endpoint's routes
 import telemetryRoute from "./src/Telemetry/routes/telemetryRoutes.js";
 import metricsRoutes from "./src/Metrics/routes/metricsRoutes.js";
-// import authRoutes from "./src/User/routes/authRoutes.js";
+import authRoutes from "./src/User/routes/authRoutes.js";
 //middlewares
 import {deviceChecker} from "./src/middleware/deviceChecker.js";
 //import error middleware
@@ -27,7 +27,7 @@ startSocket(server);
 app.use("/api/telemetry", deviceChecker, telemetryRoute);
 
 //user
-// app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 
 //send metrics
 app.use("/api/aquarium", metricsRoutes);
