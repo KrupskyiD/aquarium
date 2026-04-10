@@ -1,4 +1,4 @@
-import { customError } from "./customError";
+import { customError } from "./customError.js";
 
 //This mode is for getting all infromation about error and anything else that can help developers. Uses in development mode
 

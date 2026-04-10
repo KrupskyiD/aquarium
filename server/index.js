@@ -10,7 +10,7 @@ import telemetryRoute from "./src/Telemetry/routes/telemetryRoutes.js";
 import metricsRoutes from "./src/Metrics/routes/metricsRoutes.js";
 // import authRoutes from "./src/User/routes/authRoutes.js";
 //middlewares
-
+import {deviceChecker} from "./src/middleware/deviceChecker.js";
 //import error middleware
 import { globalErrorHandler } from "./src/ErrorHandlers/errorController.js";
 import { customError } from "./src/ErrorHandlers/customError.js";
@@ -24,7 +24,7 @@ startSocket(server);
 
 //  ENDPOINTS
 //get data from gateway, send them to client, and saved them to db 
-app.use("/api/telemetry", telemetryRoute);
+app.use("/api/telemetry", deviceChecker, telemetryRoute);
 
 //user
 // app.use("/api/auth", authRoutes);
