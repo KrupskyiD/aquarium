@@ -9,7 +9,7 @@ function App() {
   //hooks for metricks
   const [metrics, setMetrics] = useState({ temp: 0, salt: 0 });
   useEffect(() => {
-    socket.on('dashboard-metricks', (BEmetrics) => {
+    socket.on('dashboard-metrics', (BEmetrics) => {
       setMetrics(BEmetrics)
     });
   }, [])
