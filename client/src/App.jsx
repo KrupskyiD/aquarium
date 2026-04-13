@@ -1,11 +1,10 @@
-import './App.css';
-import io from 'socket.io-client';
 import { useState, useEffect } from 'react'
+import './App.css'
+import io from 'socket.io-client';
 
 const socket = io.connect('http://localhost:3001');
 
 function App() {
-
   //hooks for metricks
   const [metrics, setMetrics] = useState({ temp: 0, salt: 0 });
   useEffect(() => {
@@ -19,7 +18,7 @@ function App() {
       <p>Temperature: {metrics.temp}</p>
       <p> Salinity: {metrics.salt}</p>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
