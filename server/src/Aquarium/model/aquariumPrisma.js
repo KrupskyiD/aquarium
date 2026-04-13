@@ -42,11 +42,11 @@ export const updateAquarium = async (id, data, userId) => {
     })
 }
 
-export const deleteAquarium = async (id,userId) => {
-    return await prisma.aquarium.delete({
+export const deleteAquarium = async (id, userId) => {
+    return await prisma.aquarium.deleteMany({
         where: {
             id: parseInt(id),
             user_id: userId
         },
-    })
-}
+    });
+};
