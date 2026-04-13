@@ -7,7 +7,7 @@ export const getAllAquariums = async (userId) => {
     });
 }
 
-// отримую конкретний акваріум, з провіркою власника
+// отримую конкретний , з провіркою власника
 export const getAquariumById = async (id, userId) => {
     return await prisma.aquarium.findFirst({
         where: {
