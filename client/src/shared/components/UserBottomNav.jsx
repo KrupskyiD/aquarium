@@ -12,8 +12,9 @@ const UserBottomNav = ({ currentScreen, onNavigate }) => {
       <div className="mx-auto max-w-[760px] px-4 pb-4">
         <div className="rounded-2xl border border-[var(--auth-input-border)] bg-[color-mix(in_oklab,var(--auth-input-bg)_84%,black_16%)] backdrop-blur-md shadow-[0_14px_40px_rgba(2,6,23,0.45)]">
           <div className="flex items-center justify-around py-3">
-            {tabs.map(({ id, label, icon: Icon }) => {
+            {tabs.map(({ id, label, icon }) => {
               const active = currentScreen === id;
+              const TabIcon = icon;
 
               return (
                 <button
@@ -26,7 +27,7 @@ const UserBottomNav = ({ currentScreen, onNavigate }) => {
                       : "text-[var(--auth-text-muted)] hover:text-[var(--auth-brand-primary)]"
                   }`}
                 >
-                  <Icon size={18} />
+                  <TabIcon size={18} />
                   <span className="text-[11px] font-semibold">{label}</span>
                 </button>
               );

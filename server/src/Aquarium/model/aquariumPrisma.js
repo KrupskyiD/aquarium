@@ -1,13 +1,13 @@
 import prisma from "../../utils/prisma.js";
 
-// тут я отримую всі акваріумів, які є у клієнта
+
 export const getAllAquariums = async (userId) => {
     return await prisma.aquarium.findMany({
         where: { user_id: userId }
     });
 }
 
-// отримую конкретний акваріум, з провіркою власника
+
 export const getAquariumById = async (id, userId) => {
     return await prisma.aquarium.findFirst({
         where: {
@@ -17,7 +17,7 @@ export const getAquariumById = async (id, userId) => {
         })
 }
 
-// стоврюю новий акваріум
+
 export const createAquarium = async (data, userId) => {
     return await prisma.aquarium.create({
         data: {
@@ -32,7 +32,7 @@ export const createAquarium = async (data, userId) => {
     })
 }
 
-//оновляю акваріум (додав user_id для безпеки, мб це лишнє)
+
 export const updateAquarium = async (id, data, userId) => {
     return await prisma.aquarium.update({
         where: {
