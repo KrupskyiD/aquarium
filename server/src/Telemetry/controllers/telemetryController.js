@@ -16,6 +16,8 @@ export const telemetryController = asyncErrorHandler(async (req, res, next) => {
     getIO().emit('dashboard-metricks', metrics);
 
     //saving new data and return a status
-    const savingMetrics = await saveMetricsToDB(data);
-})
+    await saveMetricsToDB(data);
+
+    res.sendStatus(201);
+});
 

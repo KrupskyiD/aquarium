@@ -17,12 +17,14 @@ const server = http.createServer(app);
 //Start socket server for working with endpoints and arduino data
 startSocket(server);
 
+app.use("/api/biotopes", biotopeRoutes);
+app.use("/api/aquarium", aquariumRoutes);
+
 app.use("/api/telemetry", telemetryRoute);
 app.use("/api/auth", authRoutes);
 app.use("/api/metrics", metricsRoutes);
 
-app.use("/api/biotopes", biotopeRoutes);
-app.use("/api/aquarium", aquariumRoutes);
+
 
 const PORT = process.env.PORT;
 

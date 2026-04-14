@@ -33,7 +33,7 @@ export const createAquarium = async (data, userId) => {
 }
 
 //оновляю акваріум (додав user_id для безпеки, мб це лишнє)
-export const updateAquarium = async (id, data, userId) => {
+export const updateAquarium = async (id, data) => {
     return await prisma.aquarium.update({
         where: {
             id: parseInt(id)
@@ -42,11 +42,10 @@ export const updateAquarium = async (id, data, userId) => {
     })
 }
 
-export const deleteAquarium = async (id, userId) => {
+export const deleteAquarium = async (id) => {
     return await prisma.aquarium.deleteMany({
         where: {
             id: parseInt(id),
-            user_id: userId
         },
     });
 };
