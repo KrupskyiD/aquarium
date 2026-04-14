@@ -7,7 +7,7 @@ export const getAllAquariums = async (userId) => {
     });
 }
 
-// отримую конкретний , з провіркою власника
+// отримую конкретний акваріум, з провіркою власника
 export const getAquariumById = async (id, userId) => {
     return await prisma.aquarium.findFirst({
         where: {
@@ -33,7 +33,7 @@ export const createAquarium = async (data, userId) => {
 }
 
 //оновляю акваріум (додав user_id для безпеки, мб це лишнє)
-export const updateAquarium = async (id, data) => {
+export const updateAquarium = async (id, data, userId) => {
     return await prisma.aquarium.update({
         where: {
             id: parseInt(id)
@@ -42,10 +42,11 @@ export const updateAquarium = async (id, data) => {
     })
 }
 
-export const deleteAquarium = async (id) => {
-    return await prisma.aquarium.deleteMany({
+export const deleteAquarium = async (id,userId) => {
+    return await prisma.aquarium.delete({
         where: {
             id: parseInt(id),
+            user_id: userId
         },
-    });
-};
+    })
+}

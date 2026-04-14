@@ -7,8 +7,9 @@ const parser = new ReadlineParser({
     delimiter: '\r\n'
 });
 
-
-let port = new SerialPort('/*copy the path from arduino editor. On mac it will be started from dev, but on pc itll be a com*/',{
+/*copy the path from arduino editor. On mac it will be started from dev, but on pc itll be a com*/
+let port = new SerialPort({
+    path: 'COM9',
     baudRate: 9600,
     dataBits: 8,
     parity: 'none',
@@ -21,16 +22,20 @@ port.pipe(parser);
 parser.on('data',async function(data){
 
     try {
-        const parsedData = data.split(',');
+        const parsedData = data.split(':');
 
-        if(parsedData.length === 2) {
+        if(parsedData.length === 3) {
            const dataObject = {
-                device_serial: process.env.DEVICE_SERIAL,
-                temperature: parseFloat(parsedData[0]),
-                salt: parseFloat(parsedData[1]),
-                timestamp: new Date().toISOString(),
+                device_serial: parsedData[0].trim(),
+                temperature: parseFloat(parsedData[1]),
+                salt: parseFloat(parsedData[2]),
+                // timestamp: new Date().toISOString(),
             }
-            await axios.post(process.env.BACKEND_URL, dataObject);
+            await axios.post(process.env.BACKEND_URL, dataObject, {
+                headers: {
+                    'X-API-KEY': dataObject.device_serial
+                }
+            });
         } else {
             console.log('Failed to parse the string:', data);
         }

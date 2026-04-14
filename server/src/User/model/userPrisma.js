@@ -36,3 +36,16 @@ export const deleteVerificationToken = async (token) => {
     where: { token },
   });
 };
+
+export const updateUserRefreshToken = async (userId, refreshToken) => {
+  return await prisma.users.update({
+    where: { id: userId },
+    data: { refresh_token: refreshToken },
+  });
+};
+
+export const findUserByRefreshToken = async (refreshToken) => {
+  return await prisma.users.findFirst({
+    where: { refresh_token: refreshToken },
+  });
+};
