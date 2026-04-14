@@ -8,6 +8,8 @@ import {
   findVerificationToken,
   deleteVerificationToken,
   updateUserVerification,
+  updateUserRefreshToken,
+  findUserByRefreshToken,
 } from "../model/userPrisma.js";
 import { sendVerificationEmail } from "../../utils/mailer.js";
 
@@ -107,13 +109,22 @@ export const login = async (req, res) => {
     const token = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: "24h" },
+      { expiresIn: "15m" },
     );
+
+    const refreshToken = jwt.sign(
+      { id: user.id },
+      process.env.JWT_REFRESH_SECRET,
+      { expiresIn: "7d" },
+    );
+
+    await updateUserRefreshToken(user.id, refreshToken);
 
     res.status(200).json({
       status: "success",
       data: {
-        token,
+        accessToken: token,
+        refreshToken,
         user: {
           id: user.id,
           name: user.name,
@@ -170,6 +181,68 @@ export const verifyEmail = async (req, res) => {
     res.status(500).json({
       status: "error",
       message: "Cannot verify email",
+    });
+  }
+};
+
+export const refresh = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({
+        status: "error",
+        message: "Refresh token is required",
+      });
+    }
+
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+
+    const user = await findUserByRefreshToken(refreshToken);
+
+    if (!user || user.id !== decoded.id) {
+      return res.status(401).json({
+        status: "error",
+        message: "Invalid refresh token",
+      });
+    }
+
+    const newAccessToken = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" },
+    );
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        accessToken: newAccessToken,
+      },
+    });
+  } catch (e) {
+    console.log(`Error refreshing token: ${e}`);
+    res.status(401).json({
+      status: "error",
+      message: "Invalid or expired refresh token",
+    });
+  }
+};
+
+export const logout = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    await updateUserRefreshToken(userId, null);
+
+    res.status(200).json({
+      status: "success",
+      message: "Logged out successfully",
+    });
+  } catch (e) {
+    console.log(`Error logging out: ${e}`);
+    res.status(500).json({
+      status: "error",
+      message: "Cannot logout",
     });
   }
 };
