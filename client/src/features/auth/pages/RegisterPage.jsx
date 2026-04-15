@@ -34,6 +34,7 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [touched, setTouched] = useState({
     name: false,
     email: false,
@@ -63,7 +64,8 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
     nameValid === true &&
     emailValid === true &&
     password.length >= 8 &&
-    passwordsMatch === true;
+    passwordsMatch === true &&
+    termsAccepted === true;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -77,6 +79,10 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
         confirmPassword: true
       });
       setError("Vyplň všechna pole.");
+      return;
+    }
+    if (!termsAccepted) {
+      setError("Musíš souhlasit s podmínkami použití.");
       return;
     }
     if (emailValid === false) {
@@ -107,7 +113,14 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
   return (
     <AuthLayout>
       <AuthCard>
-        <AuthHeader title="Registrace" subtitle="Vytvoř si účet v SaltGuard." />
+        <AuthHeader title="Vytvořit účet" subtitle="Sledujte akvárium odkudkoliv." />
+        <div className="mb-6">
+          <div className="flex items-center justify-center gap-2">
+            <div className="w-6 h-1.5 rounded-full bg-blue-500" />
+            <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+            <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+          </div>
+        </div>
 
         <AuthErrorAlert message={error} />
 
@@ -120,6 +133,8 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
             onBlur={() => setTouched((prev) => ({ ...prev, name: true }))}
             placeholder="Jan Novák"
             isValid={touched.name ? nameValid : null}
+            showStatusIcon={touched.name}
+            requiredMark
             required
           />
           {touched.name && nameValid === false ? (
@@ -136,6 +151,8 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
             onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
             placeholder="name@email.com"
             isValid={touched.email ? emailValid : null}
+            showStatusIcon={touched.email}
+            requiredMark
             required
           />
           {touched.email && emailValid === false ? (
@@ -156,6 +173,7 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
               showPassword={showPassword}
               onTogglePassword={() => setShowPassword((prev) => !prev)}
               isValid={touched.password ? password.length >= 8 : null}
+              requiredMark
             />
             {touched.password && password.length > 0 && password.length < 8 ? (
               <p className="text-xs text-red-400 mt-2">
@@ -194,17 +212,40 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
             showPassword={showConfirmPassword}
             onTogglePassword={() => setShowConfirmPassword((prev) => !prev)}
             isValid={touched.confirmPassword ? passwordsMatch : null}
+            requiredMark
+            showPasswordToggle={false}
+            showStatusIcon={touched.confirmPassword}
           />
           {touched.confirmPassword && passwordsMatch === false ? (
             <p className="text-xs text-red-400 -mt-3">Hesla se neshodují.</p>
           ) : null}
 
+          <div className="pt-1">
+            <label className="inline-flex items-start gap-2 text-xs text-gray-400 leading-relaxed cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded border-gray-700 bg-[#0B1120] text-blue-500 focus:ring-blue-500/40"
+              />
+              <span>
+                Souhlasím s{" "}
+                <button
+                  type="button"
+                  className="text-blue-500 hover:text-blue-400 transition underline underline-offset-2"
+                >
+                  podmínkami použití
+                </button>
+              </span>
+            </label>
+          </div>
+
           <AuthSubmitButton
             loading={loading}
-            loadingText="Registruji..."
+            loadingText="Pokračuji..."
             disabled={!canSubmit}
           >
-            Vytvořit účet
+            Pokračovat
           </AuthSubmitButton>
         </form>
 

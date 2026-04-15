@@ -28,10 +28,21 @@ const AuthPasswordInput = ({
   showPassword,
   onTogglePassword,
   isValid = null,
-  onBlur
+  onBlur,
+  requiredMark = false,
+  showPasswordToggle = true,
+  showStatusIcon = false
 }) => {
+  const shouldShowStatus = showStatusIcon && isValid !== null;
+
   return (
     <div>
+      {label ? (
+        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+          {label}
+          {requiredMark ? <span className="text-red-400"> *</span> : null}
+        </label>
+      ) : null}
       <div className="relative">
         <AuthInput
           type={showPassword ? 'text' : 'password'}
@@ -40,18 +51,28 @@ const AuthPasswordInput = ({
           onBlur={onBlur}
           placeholder={placeholder}
           isValid={isValid}
-          label={label}
-          className="pr-11"
+          className={showPasswordToggle || shouldShowStatus ? 'pr-11' : ''}
           required
         />
-        <button
-          type="button"
-          onClick={onTogglePassword}
-          className="absolute right-3.5 top-[43px] -translate-y-1/2 text-gray-500 hover:text-gray-300 transition"
-          aria-label={showPassword ? 'Hide password' : 'Show password'}
-        >
-          <EyeIcon open={showPassword} />
-        </button>
+        {showPasswordToggle ? (
+          <button
+            type="button"
+            onClick={onTogglePassword}
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition"
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+          >
+            <EyeIcon open={showPassword} />
+          </button>
+        ) : null}
+        {!showPasswordToggle && shouldShowStatus ? (
+          <span
+            className={`absolute right-3.5 top-1/2 -translate-y-1/2 text-xl leading-none ${
+              isValid ? 'text-green-400' : 'text-red-400'
+            }`}
+          >
+            {isValid ? '✓' : '✕'}
+          </span>
+        ) : null}
       </div>
     </div>
   );

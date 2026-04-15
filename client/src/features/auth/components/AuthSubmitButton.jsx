@@ -8,7 +8,7 @@ const AuthSubmitButton = ({
     <button
       type="submit"
       disabled={loading || disabled}
-      className="w-full mt-3 bg-blue-600 hover:bg-blue-500 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl py-3.5 text-sm transition-all"
+      className="w-full mt-3 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl py-3.5 text-sm transition-all"
     >
       {loading ? (
         <span className="flex items-center justify-center gap-2">
