@@ -2,7 +2,7 @@ const AuthErrorAlert = ({ message }) => {
   if (!message) return null;
 
   return (
-    <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl px-4 py-3 mb-6 flex items-center gap-2.5">
+    <div className="bg-[color-mix(in_oklab,var(--color-danger)_14%,transparent)] border border-[color-mix(in_oklab,var(--color-danger)_30%,transparent)] text-[var(--color-danger)] text-xs rounded-xl px-4 py-3 mb-6 flex items-center gap-2.5">
       <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path
           strokeLinecap="round"

@@ -1,16 +1,16 @@
 const getInputClass = (isValid) => {
   const base =
-    'w-full bg-[var(--color-bg-app)] border rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-[color:var(--color-text-subtle)] outline-none transition-all';
+    'w-full bg-[var(--auth-input-bg)] border rounded-xl px-4 py-3 md:py-3.5 text-base text-slate-200 placeholder:text-[var(--auth-text-placeholder)] outline-none transition-colors';
 
   if (isValid === true) {
-    return `${base} border-[color:color-mix(in_oklab,var(--color-success)_40%,transparent)] focus:border-[var(--color-success)]`;
+    return `${base} border-emerald-500/45 focus:border-emerald-400`;
   }
 
   if (isValid === false) {
-    return `${base} border-[color:color-mix(in_oklab,var(--color-danger)_40%,transparent)] focus:border-[var(--color-danger)]`;
+    return `${base} border-rose-500/55 focus:border-rose-400`;
   }
 
-  return `${base} border-[color:var(--color-border)] focus:border-[var(--color-primary)]`;
+  return `${base} border-[var(--auth-input-border)] focus:border-[var(--auth-brand-accent)]`;
 };
 
 const CheckIcon = () => (
@@ -37,9 +37,9 @@ const AuthInput = ({
   return (
     <div className={wrapperClassName}>
       {label ? (
-        <label className="block text-xs font-bold text-[color:var(--color-text-subtle)] uppercase tracking-wider mb-2">
+        <label className="block text-sm md:text-[15px] font-medium text-[var(--auth-text-muted)] tracking-wide mb-2">
           {label}
-          {requiredMark ? <span className="text-[var(--color-danger)]"> *</span> : null}
+          {requiredMark ? <span className="text-rose-400"> *</span> : null}
         </label>
       ) : null}
       <div className="relative">
@@ -50,7 +50,7 @@ const AuthInput = ({
         {showStatusIcon && isValid !== null ? (
           <span
             className={`absolute right-3.5 top-1/2 -translate-y-1/2 ${
-              isValid ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'
+              isValid ? 'text-emerald-400' : 'text-rose-400'
             }`}
           >
             {isValid ? <CheckIcon /> : <XIcon />}

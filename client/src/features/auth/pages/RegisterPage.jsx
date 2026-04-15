@@ -39,7 +39,7 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
     name: false,
     email: false,
     password: false,
-    confirmPassword: false
+    confirmPassword: false,
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -76,7 +76,7 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
         name: true,
         email: true,
         password: true,
-        confirmPassword: true
+        confirmPassword: true,
       });
       setError("Vyplň všechna pole.");
       return;
@@ -102,7 +102,7 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
     try {
       // Placeholder flow: register API napojíme v dalším kroku.
       await new Promise((resolve) => setTimeout(resolve, 450));
-      onSuccess?.();
+      onSuccess?.({ email, name: name.trim() });
     } catch {
       setError("Registrace se nezdařila. Zkus to prosím znovu.");
     } finally {
@@ -113,18 +113,14 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
   return (
     <AuthLayout>
       <AuthCard>
-        <AuthHeader title="Vytvořit účet" subtitle="Sledujte akvárium odkudkoliv." />
-        <div className="mb-6">
-          <div className="flex items-center justify-center gap-2">
-            <div className="w-6 h-1.5 rounded-full bg-blue-500" />
-            <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
-            <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
-          </div>
-        </div>
+        <AuthHeader
+          title="Vytvořit účet"
+          subtitle="Vytvořte si účet a mějte akvárium pod kontrolou v reálném čase"
+        />
 
         <AuthErrorAlert message={error} />
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
           <AuthInput
             label="Jméno"
             type="text"
@@ -138,25 +134,25 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
             required
           />
           {touched.name && nameValid === false ? (
-            <p className="text-xs text-red-400 -mt-3">
+            <p className="text-xs text-rose-400 -mt-2">
               Jméno musí mít alespoň 2 znaky.
             </p>
           ) : null}
 
           <AuthInput
-            label="Email"
+            label="E-mail"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
-            placeholder="name@email.com"
+            placeholder="jan.novak@email.cz"
             isValid={touched.email ? emailValid : null}
             showStatusIcon={touched.email}
             requiredMark
             required
           />
           {touched.email && emailValid === false ? (
-            <p className="text-xs text-red-400 -mt-3">
+            <p className="text-xs text-rose-400 -mt-2">
               Email nemá správný formát.
             </p>
           ) : null}
@@ -166,35 +162,33 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
               label="Heslo"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              onBlur={() =>
-                setTouched((prev) => ({ ...prev, password: true }))
-              }
-              placeholder="Alespoň 8 znaků"
+              onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
+              placeholder="••••••••"
               showPassword={showPassword}
               onTogglePassword={() => setShowPassword((prev) => !prev)}
               isValid={touched.password ? password.length >= 8 : null}
               requiredMark
             />
             {touched.password && password.length > 0 && password.length < 8 ? (
-              <p className="text-xs text-red-400 mt-2">
+              <p className="text-xs text-rose-400 mt-1.5">
                 Heslo musí mít minimálně 8 znaků.
               </p>
             ) : null}
             {password ? (
-              <div className="mt-3">
-                <div className="flex gap-1.5 mb-2">
+              <div className="mt-2.5">
+                <div className="flex gap-1.5 mb-1.5">
                   {[1, 2, 3, 4].map((i) => (
                     <div
                       key={i}
                       className={`h-0.5 flex-1 rounded-full ${
                         i <= strength.score
                           ? strength.color.split(" ")[0]
-                          : "bg-white/10"
+                          : "bg-white/15"
                       }`}
                     />
                   ))}
                 </div>
-                <p className={`text-xs ${strength.color.split(" ")[1]}`}>
+                <p className={`text-[11px] ${strength.color.split(" ")[1]}`}>
                   {strength.label}
                 </p>
               </div>
@@ -208,31 +202,31 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
             onBlur={() =>
               setTouched((prev) => ({ ...prev, confirmPassword: true }))
             }
-            placeholder="Zopakuj heslo"
+            placeholder="••••••••"
             showPassword={showConfirmPassword}
             onTogglePassword={() => setShowConfirmPassword((prev) => !prev)}
             isValid={touched.confirmPassword ? passwordsMatch : null}
             requiredMark
-            showPasswordToggle={false}
+            showPasswordToggle
             showStatusIcon={touched.confirmPassword}
           />
           {touched.confirmPassword && passwordsMatch === false ? (
-            <p className="text-xs text-red-400 -mt-3">Hesla se neshodují.</p>
+            <p className="text-xs text-rose-400 -mt-2">Hesla se neshodují.</p>
           ) : null}
 
           <div className="pt-1">
-            <label className="inline-flex items-start gap-2 text-xs text-gray-400 leading-relaxed cursor-pointer select-none">
+            <label className="inline-flex items-start gap-2 text-[11px] text-slate-500 leading-relaxed cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={termsAccepted}
                 onChange={(e) => setTermsAccepted(e.target.checked)}
-                className="mt-0.5 w-4 h-4 rounded border-gray-700 bg-[#0B1120] text-blue-500 focus:ring-blue-500/40"
+                className="mt-0.5 w-3.5 h-3.5 rounded border-slate-700 bg-[#0B1120] text-blue-500 focus:ring-blue-500/40"
               />
               <span>
                 Souhlasím s{" "}
                 <button
                   type="button"
-                  className="text-blue-500 hover:text-blue-400 transition underline underline-offset-2"
+                  className="text-blue-400 hover:text-blue-300 transition underline underline-offset-2"
                 >
                   podmínkami použití
                 </button>
@@ -242,16 +236,16 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
 
           <AuthSubmitButton
             loading={loading}
-            loadingText="Pokračuji..."
+            loadingText="Vytvářím účet..."
             disabled={!canSubmit}
           >
-            Pokračovat
+            Vytvořit účet
           </AuthSubmitButton>
         </form>
 
         <AuthFooterLink
-          text="Už máš účet?"
-          linkText="Přihlášení"
+          text="Už máte účet?"
+          linkText="Přihlásit se"
           onClick={() => onNavigate?.("login")}
         />
       </AuthCard>

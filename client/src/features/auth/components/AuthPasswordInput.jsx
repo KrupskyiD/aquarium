@@ -38,9 +38,9 @@ const AuthPasswordInput = ({
   return (
     <div>
       {label ? (
-        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+        <label className="block text-sm md:text-[15px] font-medium text-[var(--auth-text-muted)] tracking-wide mb-2">
           {label}
-          {requiredMark ? <span className="text-red-400"> *</span> : null}
+          {requiredMark ? <span className="text-rose-400"> *</span> : null}
         </label>
       ) : null}
       <div className="relative">
@@ -54,11 +54,11 @@ const AuthPasswordInput = ({
           className={showPasswordToggle || shouldShowStatus ? 'pr-11' : ''}
           required
         />
-        {showPasswordToggle ? (
+        {showPasswordToggle && !shouldShowStatus ? (
           <button
             type="button"
             onClick={onTogglePassword}
-            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition"
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--auth-text-placeholder)] hover:text-slate-300 transition"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
             <EyeIcon open={showPassword} />
@@ -67,7 +67,7 @@ const AuthPasswordInput = ({
         {!showPasswordToggle && shouldShowStatus ? (
           <span
             className={`absolute right-3.5 top-1/2 -translate-y-1/2 text-xl leading-none ${
-              isValid ? 'text-green-400' : 'text-red-400'
+              isValid ? 'text-emerald-400' : 'text-rose-400'
             }`}
           >
             {isValid ? '✓' : '✕'}

@@ -55,18 +55,21 @@ const LoginPage = ({ onSuccess, onNavigate }) => {
   return (
     <AuthLayout>
       <AuthCard>
-        <AuthHeader title="Přihlášení" subtitle="Přihlas se do SaltGuard." />
+        <AuthHeader
+          title="Přihlásit se"
+          subtitle="Vzdálený dohled nad mořským akváriem v reálném čase"
+        />
 
         <AuthErrorAlert message={error} />
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5 md:space-y-6">
           <AuthInput
-            label="Email"
+            label="E-mail"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
-            placeholder="name@email.com"
+            placeholder="jan.novak@email.cz"
             isValid={touched.email ? !emailInvalid : null}
             required
           />
@@ -79,7 +82,7 @@ const LoginPage = ({ onSuccess, onNavigate }) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
-            placeholder="Zadej heslo"
+            placeholder="••••••••"
             showPassword={showPassword}
             onTogglePassword={() => setShowPassword((prev) => !prev)}
             isValid={touched.password ? !passwordInvalid : null}
@@ -89,13 +92,13 @@ const LoginPage = ({ onSuccess, onNavigate }) => {
           ) : null}
 
           <AuthSubmitButton loading={loading} loadingText="Přihlašuji...">
-            Přihlásit
+            Přihlásit se
           </AuthSubmitButton>
         </form>
 
         <AuthFooterLink
-          text="Nemáš účet?"
-          linkText="Registrace"
+          text="Nemáte účet?"
+          linkText="Registrovat se"
           onClick={() => onNavigate?.('register')}
         />
       </AuthCard>

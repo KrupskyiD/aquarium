@@ -3,6 +3,8 @@ import "./App.css";
 import io from "socket.io-client";
 import LoginPage from "./features/auth/pages/LoginPage";
 import RegisterPage from "./features/auth/pages/RegisterPage";
+import VerifyAccountPage from "./features/auth/pages/VerifyAccountPage";
+import WelcomePage from "./features/auth/pages/WelcomePage";
 import ProfilePage from "./features/user/pages/ProfilePage";
 import AquariumManagePage from "./features/user/pages/AquariumManagePage";
 
@@ -12,6 +14,10 @@ function App() {
   const [metrics, setMetrics] = useState({ temp: 0, salt: 0 });
 
   const [currentScreen, setCurrentScreen] = useState("login");
+  const [pendingRegistration, setPendingRegistration] = useState({
+    email: "",
+    name: "",
+  });
 
   useEffect(() => {
     socket.on("dashboard-metrics", (BEmetrics) => {
@@ -30,8 +36,26 @@ function App() {
 
       {currentScreen === "register" && (
         <RegisterPage
-          onSuccess={() => setCurrentScreen("profile")}
+          onSuccess={(registrationData) => {
+            setPendingRegistration(registrationData);
+            setCurrentScreen("verify-account");
+          }}
           onNavigate={setCurrentScreen}
+        />
+      )}
+
+      {currentScreen === "verify-account" && (
+        <VerifyAccountPage
+          email={pendingRegistration.email}
+          onNavigate={setCurrentScreen}
+          onSuccess={() => setCurrentScreen("welcome")}
+        />
+      )}
+
+      {currentScreen === "welcome" && (
+        <WelcomePage
+          name={pendingRegistration.name}
+          onContinue={() => setCurrentScreen("profile")}
         />
       )}
 
