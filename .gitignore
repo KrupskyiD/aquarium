@@ -1,6 +1,7 @@
 # Ignore local env files and dependencies
 **/.env
 **/node_modules/
+/.idea
 
 # Optional OS / editor files
 .DS_Store
