@@ -1,0 +1,221 @@
+import { useMemo, useState } from "react";
+import AuthCard from "../components/AuthCard";
+import AuthErrorAlert from "../components/AuthErrorAlert";
+import AuthFooterLink from "../components/AuthFooterLink";
+import AuthHeader from "../components/AuthHeader";
+import AuthInput from "../components/AuthInput";
+import AuthLayout from "../components/AuthLayout";
+import AuthPasswordInput from "../components/AuthPasswordInput";
+import AuthSubmitButton from "../components/AuthSubmitButton";
+
+const getStrength = (password) => {
+  if (!password)
+    return { score: 0, label: "", color: "bg-white/10 text-gray-500" };
+
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  if (score <= 1)
+    return { score, label: "Weak", color: "bg-red-500 text-red-400" };
+  if (score === 2)
+    return { score, label: "Fair", color: "bg-orange-500 text-orange-400" };
+  if (score === 3)
+    return { score, label: "Good", color: "bg-yellow-500 text-yellow-400" };
+  return { score, label: "Strong", color: "bg-green-500 text-green-400" };
+};
+
+const RegisterPage = ({ onSuccess, onNavigate }) => {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [touched, setTouched] = useState({
+    name: false,
+    email: false,
+    password: false,
+    confirmPassword: false
+  });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const emailValid = useMemo(() => {
+    if (!email) return null;
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }, [email]);
+
+  const nameValid = useMemo(() => {
+    if (!name) return null;
+    return name.trim().length >= 2;
+  }, [name]);
+
+  const passwordsMatch = useMemo(() => {
+    if (!confirmPassword) return null;
+    return password === confirmPassword;
+  }, [password, confirmPassword]);
+
+  const strength = useMemo(() => getStrength(password), [password]);
+  const canSubmit =
+    nameValid === true &&
+    emailValid === true &&
+    password.length >= 8 &&
+    passwordsMatch === true;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!name.trim() || !email || !password || !confirmPassword) {
+      setTouched({
+        name: true,
+        email: true,
+        password: true,
+        confirmPassword: true
+      });
+      setError("Vyplň všechna pole.");
+      return;
+    }
+    if (emailValid === false) {
+      setError("Neplatný email.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Heslo musí mít alespoň 8 znaků.");
+      return;
+    }
+    if (!passwordsMatch) {
+      setError("Hesla se neshodují.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Placeholder flow: register API napojíme v dalším kroku.
+      await new Promise((resolve) => setTimeout(resolve, 450));
+      onSuccess?.();
+    } catch {
+      setError("Registrace se nezdařila. Zkus to prosím znovu.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <AuthLayout>
+      <AuthCard>
+        <AuthHeader title="Registrace" subtitle="Vytvoř si účet v SaltGuard." />
+
+        <AuthErrorAlert message={error} />
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <AuthInput
+            label="Jméno"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onBlur={() => setTouched((prev) => ({ ...prev, name: true }))}
+            placeholder="Jan Novák"
+            isValid={touched.name ? nameValid : null}
+            required
+          />
+          {touched.name && nameValid === false ? (
+            <p className="text-xs text-red-400 -mt-3">
+              Jméno musí mít alespoň 2 znaky.
+            </p>
+          ) : null}
+
+          <AuthInput
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
+            placeholder="name@email.com"
+            isValid={touched.email ? emailValid : null}
+            required
+          />
+          {touched.email && emailValid === false ? (
+            <p className="text-xs text-red-400 -mt-3">
+              Email nemá správný formát.
+            </p>
+          ) : null}
+
+          <div>
+            <AuthPasswordInput
+              label="Heslo"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onBlur={() =>
+                setTouched((prev) => ({ ...prev, password: true }))
+              }
+              placeholder="Alespoň 8 znaků"
+              showPassword={showPassword}
+              onTogglePassword={() => setShowPassword((prev) => !prev)}
+              isValid={touched.password ? password.length >= 8 : null}
+            />
+            {touched.password && password.length > 0 && password.length < 8 ? (
+              <p className="text-xs text-red-400 mt-2">
+                Heslo musí mít minimálně 8 znaků.
+              </p>
+            ) : null}
+            {password ? (
+              <div className="mt-3">
+                <div className="flex gap-1.5 mb-2">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div
+                      key={i}
+                      className={`h-0.5 flex-1 rounded-full ${
+                        i <= strength.score
+                          ? strength.color.split(" ")[0]
+                          : "bg-white/10"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <p className={`text-xs ${strength.color.split(" ")[1]}`}>
+                  {strength.label}
+                </p>
+              </div>
+            ) : null}
+          </div>
+
+          <AuthPasswordInput
+            label="Potvrď heslo"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            onBlur={() =>
+              setTouched((prev) => ({ ...prev, confirmPassword: true }))
+            }
+            placeholder="Zopakuj heslo"
+            showPassword={showConfirmPassword}
+            onTogglePassword={() => setShowConfirmPassword((prev) => !prev)}
+            isValid={touched.confirmPassword ? passwordsMatch : null}
+          />
+          {touched.confirmPassword && passwordsMatch === false ? (
+            <p className="text-xs text-red-400 -mt-3">Hesla se neshodují.</p>
+          ) : null}
+
+          <AuthSubmitButton
+            loading={loading}
+            loadingText="Registruji..."
+            disabled={!canSubmit}
+          >
+            Vytvořit účet
+          </AuthSubmitButton>
+        </form>
+
+        <AuthFooterLink
+          text="Už máš účet?"
+          linkText="Přihlášení"
+          onClick={() => onNavigate?.("login")}
+        />
+      </AuthCard>
+    </AuthLayout>
+  );
+};
+
+export default RegisterPage;
