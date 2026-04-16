@@ -1,5 +1,6 @@
 import asyncErrorHandler from '../../ErrorHandlers/asyncErrorHandler.js';
 import * as AquariumModel from '../model/aquariumPrisma.js';
+import { customError } from '../../ErrorHandlers/customError.js';
 
 export const getAll = asyncErrorHandler(async (req, res) => {
     const aquariums = await AquariumModel.getAllAquariums(req.user.id);
@@ -31,5 +32,13 @@ export const update = asyncErrorHandler(async (req, res) => {
 
     res.status(200).json({ status: "success", data: updatedAquarium });
 })
+
+export const getAquariumById = asyncErrorHandler(async (req, res, next) => {
+    const getById = await AquariumModel.getAquariumById(req.params.id, req.user.id);
+
+    if(!getById) return next(new customError("Your aqarium have not found!", 404));
+    
+    res.status(200).json({ status: "success", data: getById });
+});
 
 

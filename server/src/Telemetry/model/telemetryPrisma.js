@@ -1,7 +1,7 @@
 import prisma from "../../utils/prisma.js";
 
 //saving new metrics to table metrics
-export const saveMetricsToDB = async (data) => {
+export const saveMetricsToDB= async (data) => {
   //bringinng up keys from data object
   const { device_serial, temperature, salt, timestamp } = data;
 
@@ -19,7 +19,6 @@ export const saveMetricsToDB = async (data) => {
       //created_at: timestamp,
     },
   });
-
   return newMetrics;
 };
 
