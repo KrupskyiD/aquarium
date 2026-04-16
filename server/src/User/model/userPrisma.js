@@ -31,9 +31,22 @@ export const createVerificationToken = async (tokenData) => {
   });
 };
 
+export const findVerificationTokenByUserId = async (userId) => {
+  return await prisma.verification_token.findFirst({
+    where: { user_id: userId },
+    orderBy: { created_at: "desc" },
+  });
+};
+
 export const deleteVerificationToken = async (token) => {
   return await prisma.verification_token.delete({
     where: { token },
+  });
+};
+
+export const deleteVerificationTokensByUserId = async (userId) => {
+  return await prisma.verification_token.deleteMany({
+    where: { user_id: userId },
   });
 };
 

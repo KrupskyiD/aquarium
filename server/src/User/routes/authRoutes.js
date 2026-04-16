@@ -3,6 +3,7 @@ import {
   register,
   login,
   verifyEmail,
+  resendVerificationEmail,
   refresh,
   logout,
 } from "../controllers/authController.js";
@@ -18,6 +19,9 @@ router.post("/login", login);
 
 // GET /api/auth/verify
 router.get("/verify", verifyEmail);
+
+// POST /api/auth/resend-verification
+router.post("/resend-verification", resendVerificationEmail);
 
 // POST /api/auth/refresh
 router.post("/refresh", refresh);

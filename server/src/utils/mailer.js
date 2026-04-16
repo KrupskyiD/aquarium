@@ -2,16 +2,21 @@ import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
   host: process.env.MAIL_HOST,
-  port: process.env.MAIL_PORT,
+  port: Number(process.env.MAIL_PORT) || 587,
+  secure: Number(process.env.MAIL_PORT) === 465,
   auth: {
     user: process.env.MAIL_USER,
     pass: process.env.MAIL_PASS,
   },
+  connectionTimeout: 5000,
+  greetingTimeout: 5000,
+  socketTimeout: 5000,
 });
 
 export const sendVerificationEmail = async (email, token) => {
+  const mailFrom = process.env.MAIL_FROM || `"Aquarium App" <${process.env.MAIL_USER}>`;
   await transporter.sendMail({
-    from: `"Aquarium App" <${process.env.MAIL_USER}>`,
+    from: mailFrom,
     to: email,
     subject: "Verify your Aquarium account",
     html: `
