@@ -7,6 +7,7 @@ import AuthInput from "../components/AuthInput";
 import AuthLayout from "../components/AuthLayout";
 import AuthPasswordInput from "../components/AuthPasswordInput";
 import AuthSubmitButton from "../components/AuthSubmitButton";
+import { SCREENS } from "../../../shared/constants/screens";
 
 const getStrength = (password) => {
   if (!password)
@@ -246,7 +247,7 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
         <AuthFooterLink
           text="Už máte účet?"
           linkText="Přihlásit se"
-          onClick={() => onNavigate?.("login")}
+          onClick={() => onNavigate?.(SCREENS.LOGIN)}
         />
       </AuthCard>
     </AuthLayout>
