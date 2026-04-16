@@ -50,15 +50,25 @@ export const register = async (req, res) => {
       expires_at,
     });
 
-    await sendVerificationEmail(email, token);
+    let emailSent = true;
+    try {
+      await sendVerificationEmail(email, token);
+    } catch (mailError) {
+      emailSent = false;
+      console.log(`Verification email failed: ${mailError}`);
+    }
 
     res.status(201).json({
       status: "success",
-      message: "Registration successful. Please verify your email.",
+      message: emailSent
+        ? "Registration successful. Please verify your email."
+        : "Registration successful, but verification email could not be sent. Please configure mail settings.",
       data: {
         id: user.id,
         name: user.name,
         email: user.email,
+        // Dev fallback: allows manual verify when SMTP is not configured.
+        verificationToken: process.env.NODE_ENV !== "production" ? token : undefined,
       },
     });
   } catch (e) {

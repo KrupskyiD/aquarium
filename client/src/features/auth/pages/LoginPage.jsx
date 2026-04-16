@@ -7,6 +7,7 @@ import AuthInput from '../components/AuthInput';
 import AuthLayout from '../components/AuthLayout';
 import AuthPasswordInput from '../components/AuthPasswordInput';
 import AuthSubmitButton from '../components/AuthSubmitButton';
+import { SCREENS } from '../../../shared/constants/screens';
 
 const LoginPage = ({ onSuccess, onNavigate }) => {
   const [email, setEmail] = useState('');
@@ -99,7 +100,7 @@ const LoginPage = ({ onSuccess, onNavigate }) => {
         <AuthFooterLink
           text="Nemáte účet?"
           linkText="Registrovat se"
-          onClick={() => onNavigate?.('register')}
+          onClick={() => onNavigate?.(SCREENS.REGISTER)}
         />
       </AuthCard>
     </AuthLayout>

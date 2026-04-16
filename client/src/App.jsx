@@ -7,13 +7,15 @@ import VerifyAccountPage from "./features/auth/pages/VerifyAccountPage";
 import WelcomePage from "./features/auth/pages/WelcomePage";
 import ProfilePage from "./features/user/pages/ProfilePage";
 import AquariumManagePage from "./features/user/pages/AquariumManagePage";
+import UserBottomNav from "./shared/components/UserBottomNav";
+import { SCREENS } from "./shared/constants/screens";
 
 const socket = io.connect("http://localhost:3001");
 
 function App() {
   const [metrics, setMetrics] = useState({ temp: 0, salt: 0 });
 
-  const [currentScreen, setCurrentScreen] = useState("login");
+  const [currentScreen, setCurrentScreen] = useState(SCREENS.PROFILE);
   const [pendingRegistration, setPendingRegistration] = useState({
     email: "",
     name: "",
@@ -27,48 +29,56 @@ function App() {
 
   return (
     <div className="App bg-[#0B1120] min-h-dvh overflow-x-hidden">
-      {currentScreen === "login" && (
+      {currentScreen === SCREENS.LOGIN && (
         <LoginPage
-          onSuccess={() => setCurrentScreen("profile")}
+          onSuccess={() => setCurrentScreen(SCREENS.PROFILE)}
           onNavigate={setCurrentScreen}
         />
       )}
 
-      {currentScreen === "register" && (
+      {currentScreen === SCREENS.REGISTER && (
         <RegisterPage
           onSuccess={(registrationData) => {
             setPendingRegistration(registrationData);
-            setCurrentScreen("verify-account");
+            setCurrentScreen(SCREENS.VERIFY_ACCOUNT);
           }}
           onNavigate={setCurrentScreen}
         />
       )}
 
-      {currentScreen === "verify-account" && (
+      {currentScreen === SCREENS.VERIFY_ACCOUNT && (
         <VerifyAccountPage
           email={pendingRegistration.email}
           onNavigate={setCurrentScreen}
-          onSuccess={() => setCurrentScreen("welcome")}
+          onSuccess={() => setCurrentScreen(SCREENS.WELCOME)}
         />
       )}
 
-      {currentScreen === "welcome" && (
+      {currentScreen === SCREENS.WELCOME && (
         <WelcomePage
           name={pendingRegistration.name}
-          onContinue={() => setCurrentScreen("profile")}
+          onContinue={() => setCurrentScreen(SCREENS.PROFILE)}
         />
       )}
 
-      {currentScreen === "profile" && (
+      {currentScreen === SCREENS.PROFILE && (
         <ProfilePage onNavigate={setCurrentScreen} />
       )}
 
       {}
-      {currentScreen === "aquarium" && (
+      {currentScreen === SCREENS.AQUARIUM && (
         <AquariumManagePage
           onNavigate={setCurrentScreen}
           temp={metrics.temp}
           salt={metrics.salt}
+        />
+      )}
+
+      {(currentScreen === SCREENS.PROFILE ||
+        currentScreen === SCREENS.AQUARIUM) && (
+        <UserBottomNav
+          currentScreen={currentScreen}
+          onNavigate={setCurrentScreen}
         />
       )}
     </div>
