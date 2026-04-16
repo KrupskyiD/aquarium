@@ -11,6 +11,8 @@ import { startSocket } from "./Socket/socket.js";
 import telemetryRoute from "./src/Telemetry/routes/telemetryRoutes.js";
 import metricsRoutes from "./src/Metrics/routes/metricsRoutes.js";
 import authRoutes from "./src/User/routes/authRoutes.js";
+import aqauriumRoute from './src/Aquarium/routes/aquariumRoutes.js';
+import biotopes from './src/Biotopes/routes/biotopeRoutes.js';
 
 //middlewares
 import { deviceChecker } from "./src/middleware/deviceChecker.js";
@@ -35,6 +37,12 @@ app.use("/api/auth", authRoutes);
 
 //send metrics
 app.use("/api/aquarium", metricsRoutes);
+
+//routes for aqaurium
+app.use('/api/aquariums', aqauriumRoute)
+
+//route for biotopes(template of aquariums biotopes)
+app.use('/api/biotopes', biotopes);
 
 //Error handling bad url-adrreses
 app.use((req, res, next) => {
