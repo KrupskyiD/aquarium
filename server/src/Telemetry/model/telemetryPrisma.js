@@ -19,7 +19,6 @@ export const saveMetricsToDB= async (data) => {
       //created_at: timestamp,
     },
   });
-
   return newMetrics;
 };
 
