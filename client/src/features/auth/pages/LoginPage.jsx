@@ -8,6 +8,7 @@ import AuthLayout from '../components/AuthLayout';
 import AuthPasswordInput from '../components/AuthPasswordInput';
 import AuthSubmitButton from '../components/AuthSubmitButton';
 import { SCREENS } from '../../../shared/constants/screens';
+import { loginAuth } from '../api/authApi';
 
 const LoginPage = ({ onSuccess, onNavigate }) => {
   const [email, setEmail] = useState('');
@@ -43,11 +44,14 @@ const LoginPage = ({ onSuccess, onNavigate }) => {
 
     setLoading(true);
     try {
-      // Placeholder flow: auth API napojíme v dalším kroku.
-      await new Promise((resolve) => setTimeout(resolve, 350));
-      onSuccess?.();
-    } catch {
-      setError('Přihlášení se nezdařilo. Zkus to prosím znovu.');
+      const response = await loginAuth({ email, password });
+      onSuccess?.(response.data);
+    } catch (requestError) {
+      if (requestError.status === 401) {
+        setError(requestError.message || 'Neplatný email nebo heslo.');
+      } else {
+        setError('Přihlášení se nezdařilo. Zkus to prosím znovu.');
+      }
     } finally {
       setLoading(false);
     }

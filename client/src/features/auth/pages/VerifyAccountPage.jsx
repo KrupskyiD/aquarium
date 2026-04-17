@@ -6,21 +6,56 @@ import AuthSecondaryButton from "../components/AuthSecondaryButton";
 import AuthStateIcon from "../components/AuthStateIcon";
 import AuthTextBlock from "../components/AuthTextBlock";
 import { SCREENS } from "../../../shared/constants/screens";
+import { resendVerificationEmail, verifyEmailToken } from "../api/authApi";
 
-const VerifyAccountPage = ({ email, onNavigate, onSuccess }) => {
+const VerifyAccountPage = ({
+  email,
+  verificationToken,
+  onTokenUpdate,
+  onNavigate,
+  onSuccess,
+}) => {
   const [resendLoading, setResendLoading] = useState(false);
+  const [verifyLoading, setVerifyLoading] = useState(false);
   const [resendSent, setResendSent] = useState(false);
+  const [error, setError] = useState("");
+
+  const tokenFromQuery = new URLSearchParams(window.location.search).get("token");
+  const effectiveToken = tokenFromQuery || verificationToken;
 
   const handleResend = async () => {
     if (resendLoading) return;
     setResendLoading(true);
     setResendSent(false);
+    setError("");
     try {
-      // Placeholder flow: resend API napojime v dalsim kroku.
-      await new Promise((resolve) => setTimeout(resolve, 550));
+      const response = await resendVerificationEmail(email);
+      if (response?.data?.verificationToken) {
+        onTokenUpdate?.(response.data.verificationToken);
+      }
       setResendSent(true);
+    } catch (requestError) {
+      setError(requestError.message || "Nepodařilo se odeslat ověřovací email znovu.");
     } finally {
       setResendLoading(false);
+    }
+  };
+
+  const handleVerify = async () => {
+    if (!effectiveToken) {
+      setError("Otevřete ověřovací odkaz z emailu, nebo si nechte poslat nový.");
+      return;
+    }
+
+    setVerifyLoading(true);
+    setError("");
+    try {
+      await verifyEmailToken(effectiveToken);
+      onSuccess?.();
+    } catch (requestError) {
+      setError(requestError.message || "Ověření účtu se nezdařilo.");
+    } finally {
+      setVerifyLoading(false);
     }
   };
 
@@ -52,6 +87,9 @@ const VerifyAccountPage = ({ email, onNavigate, onSuccess }) => {
             Ověřovací e-mail jsme poslali znovu.
           </p>
         ) : null}
+        {error ? (
+          <p className="text-center text-sm mt-3 text-rose-400">{error}</p>
+        ) : null}
 
         <div className="mt-6 space-y-3">
           <AuthFooterLink
@@ -61,10 +99,11 @@ const VerifyAccountPage = ({ email, onNavigate, onSuccess }) => {
           />
           <button
             type="button"
-            onClick={onSuccess}
+            onClick={handleVerify}
+            disabled={verifyLoading}
             className="block w-full text-center text-sm text-[var(--auth-link)] hover:text-blue-300 font-semibold transition"
           >
-            Už jsem e-mail ověřil(a)
+            {verifyLoading ? "Ověřuji..." : "Dokončit ověření"}
           </button>
         </div>
       </AuthCard>
