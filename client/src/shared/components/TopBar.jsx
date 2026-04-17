@@ -8,7 +8,7 @@ const TopBar = ({ title, onBack }) => {
           type="button"
           onClick={onBack}
           className="absolute left-6 top-1/2 -translate-y-1/2 text-[var(--auth-text-muted)] hover:text-[var(--auth-brand-primary)] transition-colors"
-          aria-label="Back"
+          aria-label="Zpět"
         >
           <ChevronLeft size={22} />
         </button>

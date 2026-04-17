@@ -8,6 +8,7 @@ import AuthLayout from "../components/AuthLayout";
 import AuthPasswordInput from "../components/AuthPasswordInput";
 import AuthSubmitButton from "../components/AuthSubmitButton";
 import { SCREENS } from "../../../shared/constants/screens";
+import { registerAuth } from "../api/authApi";
 
 const getStrength = (password) => {
   if (!password)
@@ -20,12 +21,12 @@ const getStrength = (password) => {
   if (/[^A-Za-z0-9]/.test(password)) score++;
 
   if (score <= 1)
-    return { score, label: "Weak", color: "bg-red-500 text-red-400" };
+    return { score, label: "Slabé", color: "bg-red-500 text-red-400" };
   if (score === 2)
-    return { score, label: "Fair", color: "bg-orange-500 text-orange-400" };
+    return { score, label: "Průměrné", color: "bg-orange-500 text-orange-400" };
   if (score === 3)
-    return { score, label: "Good", color: "bg-yellow-500 text-yellow-400" };
-  return { score, label: "Strong", color: "bg-green-500 text-green-400" };
+    return { score, label: "Dobré", color: "bg-yellow-500 text-yellow-400" };
+  return { score, label: "Silné", color: "bg-green-500 text-green-400" };
 };
 
 const RegisterPage = ({ onSuccess, onNavigate }) => {
@@ -101,11 +102,23 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
 
     setLoading(true);
     try {
-      // Placeholder flow: register API napojíme v dalším kroku.
-      await new Promise((resolve) => setTimeout(resolve, 450));
-      onSuccess?.({ email, name: name.trim() });
-    } catch {
-      setError("Registrace se nezdařila. Zkus to prosím znovu.");
+      const response = await registerAuth({
+        name: name.trim(),
+        email: email.trim(),
+        password,
+      });
+
+      onSuccess?.({
+        email: response?.data?.email || email.trim(),
+        name: response?.data?.name || name.trim(),
+        verificationToken: response?.data?.verificationToken || "",
+      });
+    } catch (requestError) {
+      if (requestError.status === 400) {
+        setError(requestError.message || "Registrace se nezdařila.");
+      } else {
+        setError("Registrace se nezdařila. Zkus to prosím znovu.");
+      }
     } finally {
       setLoading(false);
     }

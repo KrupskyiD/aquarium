@@ -11,32 +11,74 @@ import UserBottomNav from "./shared/components/UserBottomNav";
 import { SCREENS } from "./shared/constants/screens";
 
 const socket = io.connect("http://localhost:3001");
+const AUTH_SESSION_STORAGE_KEY = "saltguard.auth.session";
+
+const parseStoredSession = () => {
+  try {
+    const raw = localStorage.getItem(AUTH_SESSION_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
 
 function App() {
   const [metrics, setMetrics] = useState({ temp: 0, salt: 0 });
+  const [authSession, setAuthSession] = useState(() => parseStoredSession());
 
-  const [currentScreen, setCurrentScreen] = useState(SCREENS.PROFILE);
+  const [currentScreen, setCurrentScreen] = useState(() =>
+    parseStoredSession() ? SCREENS.PROFILE : SCREENS.LOGIN,
+  );
   const [pendingRegistration, setPendingRegistration] = useState({
     email: "",
     name: "",
+    verificationToken: "",
   });
 
   useEffect(() => {
     socket.on("dashboard-metrics", (BEmetrics) => {
       setMetrics(BEmetrics);
     });
+
+    return () => {
+      socket.off("dashboard-metrics");
+    };
   }, []);
+
+  useEffect(() => {
+    if (authSession) {
+      localStorage.setItem(AUTH_SESSION_STORAGE_KEY, JSON.stringify(authSession));
+      return;
+    }
+    localStorage.removeItem(AUTH_SESSION_STORAGE_KEY);
+  }, [authSession]);
+
+  const effectiveScreen =
+    !authSession &&
+    (currentScreen === SCREENS.PROFILE || currentScreen === SCREENS.AQUARIUM)
+      ? SCREENS.LOGIN
+      : currentScreen;
+
+  const handleLoginSuccess = ({ user, accessToken, refreshToken }) => {
+    setAuthSession({ user, accessToken, refreshToken });
+    setCurrentScreen(SCREENS.PROFILE);
+  };
+
+  const handleLogout = () => {
+    setAuthSession(null);
+    setCurrentScreen(SCREENS.LOGIN);
+  };
 
   return (
     <div className="App bg-[#0B1120] min-h-dvh overflow-x-hidden">
-      {currentScreen === SCREENS.LOGIN && (
+      {effectiveScreen === SCREENS.LOGIN && (
         <LoginPage
-          onSuccess={() => setCurrentScreen(SCREENS.PROFILE)}
+          onSuccess={handleLoginSuccess}
           onNavigate={setCurrentScreen}
         />
       )}
 
-      {currentScreen === SCREENS.REGISTER && (
+      {effectiveScreen === SCREENS.REGISTER && (
         <RegisterPage
           onSuccess={(registrationData) => {
             setPendingRegistration(registrationData);
@@ -46,27 +88,39 @@ function App() {
         />
       )}
 
-      {currentScreen === SCREENS.VERIFY_ACCOUNT && (
+      {effectiveScreen === SCREENS.VERIFY_ACCOUNT && (
         <VerifyAccountPage
           email={pendingRegistration.email}
+          verificationToken={pendingRegistration.verificationToken}
+          onTokenUpdate={(token) =>
+            setPendingRegistration((prev) => ({
+              ...prev,
+              verificationToken: token,
+            }))
+          }
           onNavigate={setCurrentScreen}
           onSuccess={() => setCurrentScreen(SCREENS.WELCOME)}
         />
       )}
 
-      {currentScreen === SCREENS.WELCOME && (
+      {effectiveScreen === SCREENS.WELCOME && (
         <WelcomePage
           name={pendingRegistration.name}
-          onContinue={() => setCurrentScreen(SCREENS.PROFILE)}
+          onContinue={() => setCurrentScreen(SCREENS.LOGIN)}
         />
       )}
 
-      {currentScreen === SCREENS.PROFILE && (
-        <ProfilePage onNavigate={setCurrentScreen} />
+      {effectiveScreen === SCREENS.PROFILE && (
+        <ProfilePage
+          onNavigate={setCurrentScreen}
+          authUser={authSession?.user}
+          accessToken={authSession?.accessToken}
+          onLogout={handleLogout}
+        />
       )}
 
       {}
-      {currentScreen === SCREENS.AQUARIUM && (
+      {effectiveScreen === SCREENS.AQUARIUM && (
         <AquariumManagePage
           onNavigate={setCurrentScreen}
           temp={metrics.temp}
@@ -74,10 +128,10 @@ function App() {
         />
       )}
 
-      {(currentScreen === SCREENS.PROFILE ||
-        currentScreen === SCREENS.AQUARIUM) && (
+      {(effectiveScreen === SCREENS.PROFILE ||
+        effectiveScreen === SCREENS.AQUARIUM) && (
         <UserBottomNav
-          currentScreen={currentScreen}
+          currentScreen={effectiveScreen}
           onNavigate={setCurrentScreen}
         />
       )}
