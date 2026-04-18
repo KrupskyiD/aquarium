@@ -1,30 +1,25 @@
-import { getLimits } from './aquariumLimits.js';
-import asyncError from '../../ErrorHandlers/asyncErrorHandler.js'
+import { getLimits } from './db/aquariumLimits.js';
+import { saltLimits } from './controllers/saltLimits.js';
+import { tempLimits } from './controllers/tempLimits.js';
 
-export const saltLimits = asyncError(async (req, res, next) => {
-    const limits = req.body;
-    const { device_serial } = req.body;
+export const limits = async (data) => {
 
-    //get limits from user's aquarium
+    //getting needed data from gateway through gateway
+    const { device_serial, temperature, salt } = data;
+
+    //get range limits (min and max for temperature and salinity) from user's aquarium
     const aquariumLimits = await getLimits(device_serial);
+    if(!aquariumLimits) return "WRONG_DEVICE";
 
     //Check if salt is in limits
-    if (aquariumLimits.min_salt <= limits.salt && limits <= aquariumLimits.max_salt) {
-        return {
-            text: "v normě",
-            number: 0
-        };
-    } else if (aquariumLimits.min >= limits.salt) {
-        const saltDifference = aquariumLimits.min - limits.salt;
-        return {
-            text: "pod cílem",
-            difference: saltDifference
-        };
-    } else {
-        const saltDifference = aquariumLimits.min + limits.salt;
-        return {
-            text: "nad cílem",
-            difference: saltDifference
-        };
+    const saltStatus = saltLimits(aquariumLimits, salt);
+
+    //check if temp is in limits
+    const tempStatus = tempLimits(aquariumLimits, temperature);
+    
+    //return object with difference for limits and status(text) for each metric
+    return {
+        salt: saltStatus,
+        temp: tempStatus
     }
-})
+}

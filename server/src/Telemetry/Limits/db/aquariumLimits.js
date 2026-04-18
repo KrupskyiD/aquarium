@@ -1,22 +1,18 @@
-import prisma from "../../../utils/prisma";
+import prisma from "../../../utils/prisma.js";
 
-export const getLimits = async (data) => {
+export const getLimits = async (device_serial) => {
     const limits = await prisma.aquarium.findFirst({
-        data: {
-            aquarium: {
-                connect: {
-                    device_serial: data.device_serial
-                },
-            },
-            select: {
-                min_salt: true,
-                max_salt: true,
-                min_temp: true,
-                max_temp: true,
-            },
-        }
+        where: {
+            device_serial: device_serial
+        },
+        select: {
+            min_salt: true,
+            max_salt: true,
+            min_temp: true,
+            max_temp: true,
+        },
+
     });
 
-    //if(!limits) return null;
     return limits;
 };
