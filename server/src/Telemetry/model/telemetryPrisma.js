@@ -22,6 +22,18 @@ export const saveMetricsToDB= async (data) => {
   return newMetrics;
 };
 
+//getting user's id from db with device_serial
+export const userDb = async(device_serial) => {
+  return await prisma.aquarium.findUnique({
+    where: {
+      device_serial: device_serial
+    },
+    select: {
+      user_id: true
+    }
+  });
+};
+
 //if it'll be needed in a future to do a two-step finding aquarium_id
 /** 
  * // src/models/telemetryModel.js
