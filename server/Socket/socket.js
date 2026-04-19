@@ -1,5 +1,5 @@
 import { Server } from 'socket.io'
-import { customError } from '../src/ErrorHandlers/customError';
+import { customError } from '../src/ErrorHandlers/customError.js';
 
 let io;
 export const startSocket = (server) => {
