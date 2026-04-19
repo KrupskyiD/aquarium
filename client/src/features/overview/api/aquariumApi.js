@@ -1,24 +1,42 @@
-import axios from "axios";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
-const API_URL = "http://localhost:3001/api/aquarium";
+const authHeader = (token) => ({
+  Authorization: `Bearer ${token}`,
+  "Content-Type": "application/json",
+});
 
-export const getAquariums = async (token) => {
-    const response = await axios.get(API_URL, {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-    return response.data;
+/**
+ * GET /api/aquariums — list current user's aquariums (requires JWT).
+ */
+export const getAquariums = async (accessToken) => {
+  const res = await fetch(`${API_BASE_URL}/api/aquariums`, {
+    headers: authHeader(accessToken),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(body?.message || "Nepodařilo se načíst akvária");
+    err.status = res.status;
+    throw err;
+  }
+  return body;
 };
 
-export const createAquarium = async (aquariumData, token) => {
-    const response = await axios.post(API_URL, aquariumData, {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-    return response.data;
-};
+/**
+ * POST /api/aquariums — create aquarium (requires JWT).
+ */
 
-export const deleteAquarium = async (id, token) => {
-    const response = await axios.delete(`${API_URL}/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-    return response.data;
+
+export const postAquarium = async (accessToken, payload) => {
+  const res = await fetch(`${API_BASE_URL}/api/aquariums`, {
+    method: "POST",
+    headers: authHeader(accessToken),
+    body: JSON.stringify(payload),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(body?.message || "Uložení se nezdařilo");
+    err.status = res.status;
+    throw err;
+  }
+  return body;
 };

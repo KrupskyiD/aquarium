@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AlertCircle, Check, X } from "lucide-react";
+import { AlertCircle, X } from "lucide-react";
 import Button from "../../../shared/components/Button";
 import Input from "../../../shared/components/Input";
 import Textarea from "../../../shared/components/Textarea";
@@ -13,8 +13,16 @@ const initialForm = () => ({
 });
 
 /**
+ * Sanitize volume field: digits only (liters as integer).
+ */
+
+
+const digitsOnly = (raw) => raw.replace(/\D/g, "");
+
+/**
  * Create-aquarium form (Czech labels). Submit is handled by parent (modal or full-screen host).
  */
+
 const AddAquariumForm = ({ onSave, onCancel }) => {
   const [form, setForm] = useState(initialForm);
 
@@ -23,14 +31,23 @@ const AddAquariumForm = ({ onSave, onCancel }) => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const isValid = useMemo(() => {
-    return form.name.trim().length > 0 && form.deviceAddress.trim().length > 0;
-  }, [form.name, form.deviceAddress]);
+  const handleVolumeChange = (e) => {
+    const cleaned = digitsOnly(e.target.value);
+    setForm((prev) => ({ ...prev, volumeLiters: cleaned }));
+  };
 
-  const handleSubmit = (e) => {
+  const isValid = useMemo(() => {
+    const nameOk = form.name.trim().length > 0;
+    const deviceOk = form.deviceAddress.trim().length > 0;
+    const volumeNum = parseInt(form.volumeLiters, 10);
+    const volumeOk = Number.isFinite(volumeNum) && volumeNum >= 1;
+    return nameOk && deviceOk && volumeOk;
+  }, [form.name, form.deviceAddress, form.volumeLiters]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isValid) return;
-    onSave?.({
+    await onSave?.({
       name: form.name.trim(),
       volumeLiters: form.volumeLiters.trim(),
       type: form.type,
@@ -74,9 +91,11 @@ const AddAquariumForm = ({ onSave, onCancel }) => {
             <input
               id="volumeLiters"
               name="volumeLiters"
-              inputMode="decimal"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              autoComplete="off"
               value={form.volumeLiters}
-              onChange={handleChange}
+              onChange={handleVolumeChange}
               placeholder="250"
               className="min-w-0 flex-1 border-0 bg-transparent px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none"
             />
@@ -84,11 +103,6 @@ const AddAquariumForm = ({ onSave, onCancel }) => {
               litry
             </span>
           </div>
-          {form.volumeLiters.trim() !== "" ? (
-            <p className="mt-1.5 flex items-center gap-1 text-xs text-emerald-400">
-              <Check size={14} aria-hidden /> Vypadá to dobře
-            </p>
-          ) : null}
         </div>
 
         <div>
@@ -137,14 +151,18 @@ const AddAquariumForm = ({ onSave, onCancel }) => {
           onChange={handleChange}
           placeholder="192.168.1.24"
           required
-          rightSlot={<AlertCircle size={18} className="opacity-70" aria-hidden />}
-        />
+          rightSlot={<AlertCircle size={18} className="opacity-70" aria-hidden />}/>
       </div>
 
       <div className="mt-8 flex flex-col gap-3 md:mt-10 md:flex-row md:justify-end md:gap-3">
-        <Button type="button" variant="secondary" className="w-full py-3.5 md:w-auto md:min-w-[140px]" onClick={onCancel}>
+        <Button
+          type="button"
+          variant="secondary"
+          className="w-full py-3.5 md:w-auto md:min-w-[140px]"
+          onClick={onCancel}>
           Zrušit
         </Button>
+
         <Button type="submit" disabled={!isValid} className="w-full py-3.5 md:w-auto md:min-w-[200px]">
           Přidat a připojit
         </Button>

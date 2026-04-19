@@ -107,7 +107,10 @@ function App() {
       )}
 
       {effectiveScreen === SCREENS.AQUARIUM && (
-        <OverviewPage onNavigate={setCurrentScreen} />
+        <OverviewPage
+          accessToken={authSession?.accessToken}
+          onNavigate={setCurrentScreen}
+        />
       )}
 
 

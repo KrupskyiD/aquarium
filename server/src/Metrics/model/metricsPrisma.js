@@ -22,7 +22,7 @@ export const saveMetricsToDB = async (data) => {
     data: {
       aquarium: {
         connect: {
-          device_serial: data.device_serial,
+          device_number: data.device_serial,
         },
       },
       temperature: data.temperature,

@@ -10,7 +10,7 @@ export const saveMetricsToDB= async (data) => {
       aquarium: {
         //finding out aquarium_id by using connect, which will find the if by unique serial device :^
         connect: {
-          device_serial: device_serial,
+          device_number: device_serial,
         },
       },
       temperature: temperature,
@@ -26,7 +26,7 @@ export const saveMetricsToDB= async (data) => {
 export const userDb = async(device_serial) => {
   return await prisma.aquarium.findUnique({
     where: {
-      device_serial: device_serial
+      device_number: device_serial,
     },
     select: {
       user_id: true
@@ -46,7 +46,7 @@ export const saveTelemetryToDB = async (data) => {
 
   // 1. Ищем аквариум
   const aquarium = await prisma.aquarium.findFirst({
-    where: { device_serial: device_serial }
+    where: { device_number: device_serial },
   });
 
   if (!aquarium) {

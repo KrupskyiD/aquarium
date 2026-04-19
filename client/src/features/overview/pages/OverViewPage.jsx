@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import AppLayout from "../../../shared/components/AppLayout";
 import Button from "../../../shared/components/Button";
@@ -7,24 +7,45 @@ import { SCREENS } from "../../../shared/constants/screens";
 import AddAquariumForm from "../components/AddAquariumForm.jsx";
 import AquariumCard from "../components/AquariumCard.jsx";
 import EmptyState from "../components/EmptyState.jsx";
-
-const randomId = () =>
-  typeof crypto !== "undefined" && crypto.randomUUID
-    ? crypto.randomUUID()
-    : `aq_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-
-const parseVolume = (raw) => {
-  const n = Number(String(raw).replace(",", "."));
-  return Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0;
-};
+import { getAquariums, postAquarium } from "../api/aquariumApi.js";
+import { mapAquariumRowToUi } from "../utils/mapAquariumDto.js";
 
 /**
- * Overview route: mock aquarium list, live-telemetry simulation, add flow (Czech UI).
+ * Overview route: persists aquariums via API; live telemetry simulated on the client for online tanks.
  */
-const OverviewPage = ({ onNavigate }) => {
+const OverviewPage = ({ accessToken, onNavigate }) => {
   const [aquariums, setAquariums] = useState([]);
   const [liveById, setLiveById] = useState({});
   const [showAdd, setShowAdd] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+
+  const refreshAquariums = useCallback(async () => {
+    if (!accessToken) {
+      setAquariums([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const res = await getAquariums(accessToken);
+      if (res.status === "success" && Array.isArray(res.data)) {
+        setAquariums(res.data.map(mapAquariumRowToUi));
+      } else {
+        setAquariums([]);
+      }
+    } catch (e) {
+      setLoadError(e.message || "Chyba načítání");
+      setAquariums([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [accessToken]);
+
+  useEffect(() => {
+    refreshAquariums();
+  }, [refreshAquariums]);
 
   useEffect(() => {
     const tick = () => {
@@ -51,40 +72,34 @@ const OverviewPage = ({ onNavigate }) => {
 
   const subtitle = `${aquariums.length} zařízení`;
 
-  const handleSave = (formData) => {
-    const volumeLiters = parseVolume(formData.volumeLiters);
-    const marine = formData.type === "marine";
-    const baseSalinity = marine ? 34.4 + Math.random() * 0.8 : 0;
-    const baseTemperature = 24.6 + Math.random() * 1.0;
-
-    const warnDemo = /varování|warn/i.test(formData.name);
-    const adjustedSalinity = warnDemo && marine ? 36.1 + Math.random() * 0.25 : baseSalinity;
-
-    const isOnline = Math.random() > 0.12;
-
-    const newAquarium = {
-      id: randomId(),
-      name: formData.name,
-      volumeLiters,
-      type: formData.type,
-      note: formData.note,
-      deviceAddress: formData.deviceAddress,
-      isOnline,
-      baseSalinity: adjustedSalinity,
-      baseTemperature,
-    };
-
-    setAquariums((prev) => [...prev, newAquarium]);
-    setLiveById((prev) => ({
-      ...prev,
-      [newAquarium.id]: isOnline
-        ? {
-            temperature: +baseTemperature.toFixed(1),
-            salinity: marine ? +adjustedSalinity.toFixed(1) : null,
-          }
-        : undefined,
-    }));
-    setShowAdd(false);
+  const handleSave = async (formData) => {
+    if (!accessToken) return;
+    try {
+      const payload = {
+        name: formData.name,
+        volume: Number.parseInt(formData.volumeLiters, 10),
+        type: formData.type === "freshwater" ? "freshwater" : "marine",
+        notes: formData.note || undefined,
+        device_number: formData.deviceAddress,
+      };
+      const res = await postAquarium(accessToken, payload);
+      if (res.status === "success" && res.data) {
+        const ui = mapAquariumRowToUi(res.data);
+        setAquariums((prev) => [...prev, ui]);
+        setLiveById((prev) => ({
+          ...prev,
+          [ui.id]: ui.isOnline
+            ? {
+                temperature: +ui.baseTemperature.toFixed(1),
+                salinity: ui.type === "marine" ? +ui.baseSalinity.toFixed(1) : null,
+              }
+            : undefined,
+        }));
+        setShowAdd(false);
+      }
+    } catch (e) {
+      window.alert(e.message || "Akvárium se nepodařilo uložit.");
+    }
   };
 
   const headerRight =
@@ -127,7 +142,16 @@ const OverviewPage = ({ onNavigate }) => {
         activeScreen={SCREENS.AQUARIUM}
         onNavigate={onNavigate}
       >
-        {aquariums.length === 0 ? (
+        {loading ? (
+          <p className="py-12 text-center text-sm text-slate-500">Načítání…</p>
+        ) : loadError ? (
+          <div className="rounded-xl border border-red-900/60 bg-red-950/40 px-4 py-8 text-center">
+            <p className="text-sm text-red-200">{loadError}</p>
+            <Button type="button" className="mt-4 px-6 py-2.5" onClick={() => refreshAquariums()}>
+              Zkusit znovu
+            </Button>
+          </div>
+        ) : aquariums.length === 0 ? (
           <EmptyState onAddClick={() => setShowAdd(true)} />
         ) : (
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6">

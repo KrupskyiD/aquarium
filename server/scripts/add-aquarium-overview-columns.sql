@@ -1,0 +1,2 @@
+-- Legacy: initial overview columns. For current schema (table aquariums, type, device_number, status) use:
+--   scripts/migrate-aquarium-table-to-spec.sql
