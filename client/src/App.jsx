@@ -3,6 +3,7 @@ import "./App.css";
 import LoginPage from "./features/auth/pages/LoginPage";
 import RegisterPage from "./features/auth/pages/RegisterPage";
 import VerifyAccountPage from "./features/auth/pages/VerifyAccountPage";
+import MainDetail from "./features/detail/pages/MainDetail";
 import WelcomePage from "./features/auth/pages/WelcomePage";
 import ProfilePage from "./features/user/pages/ProfilePage";
 import OverviewPage from "./features/overview/pages/OverviewPage";
@@ -22,7 +23,8 @@ const parseStoredSession = () => {
 
 function App() {
   const [authSession, setAuthSession] = useState(() => parseStoredSession());
-
+  //for showing only a Detail screen
+  //const [currentScreen, setCurrentScreen] = useState(SCREENS.DETAIL);
   const [currentScreen, setCurrentScreen] = useState(() =>
     parseStoredSession() ? SCREENS.PROFILE : SCREENS.LOGIN,
   );
@@ -42,7 +44,7 @@ function App() {
 
   const effectiveScreen =
     !authSession &&
-    (currentScreen === SCREENS.PROFILE || currentScreen === SCREENS.AQUARIUM)
+    (currentScreen === SCREENS.PROFILE || currentScreen === SCREENS.AQUARIUM || currentScreen === SCREENS.DETAIL)
       ? SCREENS.LOGIN
       : currentScreen;
 
@@ -118,6 +120,8 @@ function App() {
           onNavigate={setCurrentScreen}
         />
       )}
+      {effectiveScreen === SCREENS.DETAIL && (
+        <MainDetail onNavigate={setCurrentScreen} />)}
     </div>
   );
 }
