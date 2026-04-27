@@ -1,16 +1,14 @@
 import { useState, useEffect } from "react";
 import "./App.css";
-import io from "socket.io-client";
 import LoginPage from "./features/auth/pages/LoginPage";
 import RegisterPage from "./features/auth/pages/RegisterPage";
 import VerifyAccountPage from "./features/auth/pages/VerifyAccountPage";
 import WelcomePage from "./features/auth/pages/WelcomePage";
 import ProfilePage from "./features/user/pages/ProfilePage";
-import AquariumManagePage from "./features/user/pages/AquariumManagePage";
+import OverviewPage from "./features/overview/pages/OverviewPage";
 import UserBottomNav from "./shared/components/UserBottomNav";
 import { SCREENS } from "./shared/constants/screens";
 
-const socket = io.connect("http://localhost:3001");
 const AUTH_SESSION_STORAGE_KEY = "saltguard.auth.session";
 
 const parseStoredSession = () => {
@@ -23,7 +21,6 @@ const parseStoredSession = () => {
 };
 
 function App() {
-  const [metrics, setMetrics] = useState({ temp: 0, salt: 0 });
   const [authSession, setAuthSession] = useState(() => parseStoredSession());
 
   const [currentScreen, setCurrentScreen] = useState(() =>
@@ -34,16 +31,6 @@ function App() {
     name: "",
     verificationToken: "",
   });
-
-  useEffect(() => {
-    socket.on("dashboard-metrics", (BEmetrics) => {
-      setMetrics(BEmetrics);
-    });
-
-    return () => {
-      socket.off("dashboard-metrics");
-    };
-  }, []);
 
   useEffect(() => {
     if (authSession) {
@@ -121,11 +108,7 @@ function App() {
 
       {}
       {effectiveScreen === SCREENS.AQUARIUM && (
-        <AquariumManagePage
-          onNavigate={setCurrentScreen}
-          temp={metrics.temp}
-          salt={metrics.salt}
-        />
+        <OverviewPage onNavigate={setCurrentScreen} />
       )}
 
       {(effectiveScreen === SCREENS.PROFILE ||
