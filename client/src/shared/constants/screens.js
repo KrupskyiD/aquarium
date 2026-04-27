@@ -5,4 +5,5 @@ export const SCREENS = {
   WELCOME: "welcome",
   PROFILE: "profile",
   AQUARIUM: "aquarium",
+  DETAIL: 'detail'
 };
