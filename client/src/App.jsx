@@ -24,10 +24,10 @@ const parseStoredSession = () => {
 function App() {
   const [authSession, setAuthSession] = useState(() => parseStoredSession());
   //for showing only a Detail screen
-  //const [currentScreen, setCurrentScreen] = useState(SCREENS.DETAIL);
-  const [currentScreen, setCurrentScreen] = useState(() =>
-    parseStoredSession() ? SCREENS.PROFILE : SCREENS.LOGIN,
-  );
+  const [currentScreen, setCurrentScreen] = useState(SCREENS.DETAIL);
+  // const [currentScreen, setCurrentScreen] = useState(() =>
+  //   parseStoredSession() ? SCREENS.PROFILE : SCREENS.LOGIN,
+  // );
   const [pendingRegistration, setPendingRegistration] = useState({
     email: "",
     name: "",
