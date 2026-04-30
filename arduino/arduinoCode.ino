@@ -1,54 +1,78 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include <EEPROM.h>
+#include "DFRobot_EC10.h"
 
 #define ONE_WIRE_BUS 2
+#define EC_PIN A1
+#define SEND_INTERVAL_MS 2000
 
 OneWire oneWire(ONE_WIRE_BUS);
-DallasTemperature sensors(&oneWire);
+DallasTemperature tempSensors(&oneWire);
+DFRobot_EC10 ec;
 
-DeviceAddress sensorAddress;
+DeviceAddress tempSensorAddress;
+bool hasTempAddress = false;
 
-String addressToString(DeviceAddress deviceAddress) {
-  String result = "";
+unsigned long lastSendTime = 0;
+
+void printSensorAddress(DeviceAddress deviceAddress) {
   for (uint8_t i = 0; i < 8; i++) {
-    if (deviceAddress[i] < 16) result += "0";
-    result += String(deviceAddress[i], HEX);
+    if (deviceAddress[i] < 16) {
+      Serial.print("0");
+    }
+    Serial.print(deviceAddress[i], HEX);
   }
-  result.toUpperCase();
-  return result;
+}
+
+float readWaterTemperature() {
+  tempSensors.requestTemperatures();
+  float tempC = tempSensors.getTempC(tempSensorAddress);
+
+  // Fallback if DS18B20 is temporarily disconnected
+  if (tempC == DEVICE_DISCONNECTED_C) {
+    return 25.0;
+  }
+
+  return tempC;
 }
 
 void setup() {
   Serial.begin(9600);
-  sensors.begin();
 
-  if (sensors.getDeviceCount() == 0) {
-    Serial.println("NO_SENSOR:0.00:0.00");
-    return;
-  }
+  tempSensors.begin();
+  ec.begin();
 
-  if (!sensors.getAddress(sensorAddress, 0)) {
-    Serial.println("NO_ADDRESS:0.00:0.00");
-    return;
+  if (tempSensors.getDeviceCount() > 0 && tempSensors.getAddress(tempSensorAddress, 0)) {
+    hasTempAddress = true;
   }
 }
 
 void loop() {
-  sensors.requestTemperatures();
-  float tempC = sensors.getTempC(sensorAddress);
+  // Read current temperature from DS18B20
+  float temperature = hasTempAddress ? readWaterTemperature() : 25.0;
 
-  String sensorId = addressToString(sensorAddress);
+  // Read EC sensor voltage exactly in the style of the official sample
+  float voltage = analogRead(EC_PIN) / 1024.0 * 5000.0;
 
-  if (tempC == DEVICE_DISCONNECTED_C) {
-    Serial.print(sensorId);
-    Serial.println(":0.00:0.00");
-  } else {
-    Serial.print(sensorId);
+  // Convert voltage to EC (ms/cm) with temperature compensation
+  float ecValue = ec.readEC(voltage, temperature);
+
+  // Keeps calibration support active if you send commands over Serial
+  ec.calibration(voltage, temperature);
+
+  if (millis() - lastSendTime >= SEND_INTERVAL_MS) {
+    lastSendTime = millis();
+
+    if (hasTempAddress) {
+      printSensorAddress(tempSensorAddress);
+    } else {
+      Serial.print("NO_ADDRESS");
+    }
+
     Serial.print(":");
-    Serial.print(tempC, 2);
+    Serial.print(temperature, 2);
     Serial.print(":");
-    Serial.println("0.00"); // zagluska
+    Serial.println(ecValue, 2);
   }
-
-  delay(2000);
 }
