@@ -4,7 +4,7 @@ import DesktopAppLayout from "../../../shared/components/DesktopAppLayout";
 import MetricCard from '../components/MetricCard'
 import ButtonCard from '../components/ButtonCard'
 
-const MainDetail = ({ onNavigate, aquarium }) => {
+const MainDetail = ({ onNavigate, aquarium, onOpenMetricDetail }) => {
     const metrics = {
       salt: Number(aquarium?.salinity ?? 34.89).toFixed(1),
       temp: Number(aquarium?.temperature ?? 28).toFixed(1),
@@ -37,8 +37,20 @@ const pageContent = (
         </div>
       </div>
         <div className='text-slate-400 text-xs font-semibold tracking-wider uppercase'>Metriky — kliknutím zobrazíte grafy</div>
-      <MetricCard value={metrics.salt} status={metrics.limits.salt} name='Salinita' unit="ppt"/>
-      <MetricCard value={metrics.temp} status={metrics.limits.temp} name='Teplota' unit='°C'/>
+      <MetricCard
+        value={metrics.salt}
+        status={metrics.limits.salt}
+        name='Salinita'
+        unit="ppt"
+        onClick={() => onOpenMetricDetail?.("salinity")}
+      />
+      <MetricCard
+        value={metrics.temp}
+        status={metrics.limits.temp}
+        name='Teplota'
+        unit='°C'
+        onClick={() => onOpenMetricDetail?.("temperature")}
+      />
 
       <div className='text-slate-400 text-xs font-semibold tracking-wider uppercase'>Správa zařízení</div>
       <ButtonCard title='Kalibrace' onClick={() => console.log('Open calibration')}

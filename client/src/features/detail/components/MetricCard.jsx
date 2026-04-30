@@ -25,7 +25,7 @@ const ChartTooltip = ({ active, payload, unit, coordinate, viewBox }) => {
     );
 };
 
-const MetricCard = ({ value, status, name, unit }) => {
+const MetricCard = ({ value, status, name, unit, onClick }) => {
 
     const mockGraphData = [
         { value: 34.2 }, { value: 34.3 }, { value: 34.5 },
@@ -39,7 +39,11 @@ const MetricCard = ({ value, status, name, unit }) => {
     const statusArrow = isNormal ? "•" : "▼";
 
     return (
-            <div className='relative z-0 flex w-full flex-col overflow-visible rounded-2xl border border-slate-700/50 bg-[#0C1A28]'>
+            <button
+                type="button"
+                onClick={onClick}
+                className='relative z-0 flex w-full flex-col overflow-visible rounded-2xl border border-slate-700/50 bg-[#0C1A28] text-left transition-colors hover:border-slate-600/70'
+            >
                 <div className='p-4 pb-2'>
                     <div className='mb-2 flex items-center justify-between gap-3'>
                         <span className='text-slate-400 text-xs font-semibold tracking-wider uppercase'>
@@ -55,11 +59,11 @@ const MetricCard = ({ value, status, name, unit }) => {
                             <span className='text-4xl font-light tracking-tight text-white'>{value}</span>
                             <span className='text-sm text-slate-400'>{unit}</span>
                         </div>
-                        <button type="button" className='mb-1 text-slate-500 transition-colors hover:text-white'>
+                        <span className='mb-1 text-slate-500 transition-colors'>
                             <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
                                 <path d='M9 18l6-6-6-6' />
                             </svg>
-                        </button>
+                        </span>
                     </div>
                 </div>
 
@@ -94,7 +98,7 @@ const MetricCard = ({ value, status, name, unit }) => {
                     </ResponsiveContainer>
 
                 </div>
-            </div>
+            </button>
     )
 }
 

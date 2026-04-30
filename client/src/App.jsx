@@ -4,6 +4,7 @@ import LoginPage from "./features/auth/pages/LoginPage";
 import RegisterPage from "./features/auth/pages/RegisterPage";
 import VerifyAccountPage from "./features/auth/pages/VerifyAccountPage";
 import MainDetail from "./features/detail/pages/MainDetail";
+import MetricDetailPage from "./features/detail/pages/MetricDetailPage";
 import WelcomePage from "./features/auth/pages/WelcomePage";
 import ProfilePage from "./features/user/pages/ProfilePage";
 import OverviewPage from "./features/overview/pages/OverviewPage";
@@ -27,6 +28,7 @@ function App() {
     parseStoredSession() ? SCREENS.PROFILE : SCREENS.LOGIN,
   );
   const [selectedAquarium, setSelectedAquarium] = useState(null);
+  const [selectedMetric, setSelectedMetric] = useState("salinity");
   const [pendingRegistration, setPendingRegistration] = useState({
     email: "",
     name: "",
@@ -43,7 +45,12 @@ function App() {
 
   const effectiveScreen =
     !authSession &&
-    (currentScreen === SCREENS.PROFILE || currentScreen === SCREENS.AQUARIUM || currentScreen === SCREENS.DETAIL)
+    (
+      currentScreen === SCREENS.PROFILE ||
+      currentScreen === SCREENS.AQUARIUM ||
+      currentScreen === SCREENS.DETAIL ||
+      currentScreen === SCREENS.METRIC_DETAIL
+    )
       ? SCREENS.LOGIN
       : currentScreen;
 
@@ -125,7 +132,21 @@ function App() {
         />
       )}
       {effectiveScreen === SCREENS.DETAIL && (
-        <MainDetail onNavigate={setCurrentScreen} aquarium={selectedAquarium} />
+        <MainDetail
+          onNavigate={setCurrentScreen}
+          aquarium={selectedAquarium}
+          onOpenMetricDetail={(metricType) => {
+            setSelectedMetric(metricType);
+            setCurrentScreen(SCREENS.METRIC_DETAIL);
+          }}
+        />
+      )}
+      {effectiveScreen === SCREENS.METRIC_DETAIL && (
+        <MetricDetailPage
+          aquarium={selectedAquarium}
+          metricType={selectedMetric}
+          onNavigate={setCurrentScreen}
+        />
       )}
     </div>
   );
