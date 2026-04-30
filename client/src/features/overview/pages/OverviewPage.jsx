@@ -5,26 +5,9 @@ import AddAquariumForm from "../components/AddAquariumForm";
 import AquariumList from "../components/AquariumList";
 import EmptyState from "../components/EmptyState";
 
-const OverviewPage = ({ onNavigate, onOpenDetail }) => {
+const OverviewPage = ({ onNavigate, onOpenDetail, aquariums, onAddAquarium }) => {
   const [view, setView] = useState("list");
-  const [aquariums, setAquariums] = useState([]);
   const hasAquariums = aquariums.length > 0;
-
-  const handleAddAquarium = (formData) => {
-    const createdAquarium = {
-      id: crypto.randomUUID(),
-      name: formData.name.trim(),
-      volumeLiters: Number(formData.volumeLiters),
-      type: formData.aquariumType,
-      typeLabel: formData.aquariumType === "marine" ? "Mořské" : "Sladkovodní",
-      deviceNumber: formData.deviceNumber.trim(),
-      salinity: 35.2,
-      temperature: 25.4,
-    };
-
-    setAquariums((prev) => [createdAquarium, ...prev]);
-    setView("list");
-  };
 
   const listContent = (
     <div className="flex flex-1 items-start justify-center py-3 sm:py-6 md:py-8">
@@ -44,7 +27,13 @@ const OverviewPage = ({ onNavigate, onOpenDetail }) => {
 
   const formContent = (
     <div className="flex flex-1 items-start justify-center py-3 sm:py-6 md:py-8">
-      <AddAquariumForm onCancel={() => setView("list")} onAdd={handleAddAquarium} />
+      <AddAquariumForm
+        onCancel={() => setView("list")}
+        onAdd={(formData) => {
+          onAddAquarium?.(formData);
+          setView("list");
+        }}
+      />
     </div>
   );
 
