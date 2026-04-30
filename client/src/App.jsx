@@ -4,6 +4,8 @@ import LoginPage from "./features/auth/pages/LoginPage";
 import RegisterPage from "./features/auth/pages/RegisterPage";
 import VerifyAccountPage from "./features/auth/pages/VerifyAccountPage";
 import MainDetail from "./features/detail/pages/MainDetail";
+import MetricDetailPage from "./features/detail/pages/MetricDetailPage";
+import EditAquariumPage from "./features/detail/pages/EditAquariumPage";
 import WelcomePage from "./features/auth/pages/WelcomePage";
 import ProfilePage from "./features/user/pages/ProfilePage";
 import OverviewPage from "./features/overview/pages/OverviewPage";
@@ -23,11 +25,12 @@ const parseStoredSession = () => {
 
 function App() {
   const [authSession, setAuthSession] = useState(() => parseStoredSession());
-  //for showing only a Detail screen
-  const [currentScreen, setCurrentScreen] = useState(SCREENS.DETAIL);
-  // const [currentScreen, setCurrentScreen] = useState(() =>
-  //   parseStoredSession() ? SCREENS.PROFILE : SCREENS.LOGIN,
-  // );
+  const [currentScreen, setCurrentScreen] = useState(() =>
+    parseStoredSession() ? SCREENS.PROFILE : SCREENS.LOGIN,
+  );
+  const [aquariums, setAquariums] = useState([]);
+  const [selectedAquarium, setSelectedAquarium] = useState(null);
+  const [selectedMetric, setSelectedMetric] = useState("salinity");
   const [pendingRegistration, setPendingRegistration] = useState({
     email: "",
     name: "",
@@ -44,7 +47,13 @@ function App() {
 
   const effectiveScreen =
     !authSession &&
-    (currentScreen === SCREENS.PROFILE || currentScreen === SCREENS.AQUARIUM || currentScreen === SCREENS.DETAIL)
+    (
+      currentScreen === SCREENS.PROFILE ||
+      currentScreen === SCREENS.AQUARIUM ||
+      currentScreen === SCREENS.DETAIL ||
+      currentScreen === SCREENS.METRIC_DETAIL ||
+      currentScreen === SCREENS.EDIT_AQUARIUM
+    )
       ? SCREENS.LOGIN
       : currentScreen;
 
@@ -56,6 +65,57 @@ function App() {
   const handleLogout = () => {
     setAuthSession(null);
     setCurrentScreen(SCREENS.LOGIN);
+  };
+
+  const handleAddAquarium = (formData) => {
+    const createdAquarium = {
+      id: crypto.randomUUID(),
+      name: formData.name.trim(),
+      volumeLiters: Number(formData.volumeLiters),
+      type: formData.aquariumType,
+      typeLabel: formData.aquariumType === "marine" ? "Mořské" : "Sladkovodní",
+      deviceNumber: formData.deviceNumber.trim(),
+      salinity: 35.2,
+      temperature: 25.4,
+    };
+
+    setAquariums((prev) => [createdAquarium, ...prev]);
+  };
+
+  const handleSaveAquarium = ({ id, name, volumeLiters, type }) => {
+    setAquariums((prev) =>
+      prev.map((aquarium) =>
+        aquarium.id === id
+          ? {
+              ...aquarium,
+              name,
+              volumeLiters,
+              type,
+              typeLabel: type === "marine" ? "Mořské" : "Sladkovodní",
+            }
+          : aquarium,
+      ),
+    );
+
+    setSelectedAquarium((prev) =>
+      prev && prev.id === id
+        ? {
+            ...prev,
+            name,
+            volumeLiters,
+            type,
+            typeLabel: type === "marine" ? "Mořské" : "Sladkovodní",
+          }
+        : prev,
+    );
+
+    setCurrentScreen(SCREENS.DETAIL);
+  };
+
+  const handleDeleteAquarium = (aquariumId) => {
+    setAquariums((prev) => prev.filter((aquarium) => aquarium.id !== aquariumId));
+    setSelectedAquarium(null);
+    setCurrentScreen(SCREENS.AQUARIUM);
   };
 
   return (
@@ -108,9 +168,16 @@ function App() {
         />
       )}
 
-      {}
       {effectiveScreen === SCREENS.AQUARIUM && (
-        <OverviewPage onNavigate={setCurrentScreen} />
+        <OverviewPage
+          onNavigate={setCurrentScreen}
+          aquariums={aquariums}
+          onAddAquarium={handleAddAquarium}
+          onOpenDetail={(aquarium) => {
+            setSelectedAquarium(aquarium);
+            setCurrentScreen(SCREENS.DETAIL);
+          }}
+        />
       )}
 
       {(effectiveScreen === SCREENS.PROFILE ||
@@ -121,9 +188,34 @@ function App() {
         />
       )}
       {effectiveScreen === SCREENS.DETAIL && (
-        <MainDetail onNavigate={setCurrentScreen} />)}
+        <MainDetail
+          onNavigate={setCurrentScreen}
+          aquarium={selectedAquarium}
+          onOpenMetricDetail={(metricType) => {
+            setSelectedMetric(metricType);
+            setCurrentScreen(SCREENS.METRIC_DETAIL);
+          }}
+          onOpenEdit={() => setCurrentScreen(SCREENS.EDIT_AQUARIUM)}
+        />
+      )}
+      {effectiveScreen === SCREENS.METRIC_DETAIL && (
+        <MetricDetailPage
+          aquarium={selectedAquarium}
+          metricType={selectedMetric}
+          onNavigate={setCurrentScreen}
+        />
+      )}
+      {effectiveScreen === SCREENS.EDIT_AQUARIUM && (
+        <EditAquariumPage
+          aquarium={selectedAquarium}
+          onNavigate={setCurrentScreen}
+          onSave={handleSaveAquarium}
+          onDelete={handleDeleteAquarium}
+        />
+      )}
     </div>
   );
 }
+
 
 export default App;

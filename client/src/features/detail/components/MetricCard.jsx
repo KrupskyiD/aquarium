@@ -1,50 +1,81 @@
 import React from 'react'
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
-const MetricCard = ({ value, status, name, unit }) => {
+const TOOLTIP_WIDTH = 92;
+
+const ChartTooltip = ({ active, payload, unit, coordinate, viewBox }) => {
+    if (!active || !payload?.length) return null;
+
+    const value = Number(payload[0]?.value).toFixed(1);
+    const pointX = coordinate?.x ?? 0;
+    const chartLeft = viewBox?.x ?? 0;
+    const chartWidth = viewBox?.width ?? 0;
+    const rightEdge = chartLeft + chartWidth;
+    const shouldFlipLeft = pointX + TOOLTIP_WIDTH > rightEdge - 8;
+    const shouldPushRight = pointX < chartLeft + 8;
+
+    let xTranslateClass = "-translate-x-1/2";
+    if (shouldFlipLeft) xTranslateClass = "-translate-x-full -translate-x-2";
+    if (shouldPushRight) xTranslateClass = "translate-x-2";
+
+    return (
+        <div className={`rounded-md border border-slate-600/70 bg-[#071322]/95 px-2.5 py-1.5 text-xs font-medium text-slate-100 shadow-lg backdrop-blur-sm ${xTranslateClass}`}>
+            {value} {unit}
+        </div>
+    );
+};
+
+const MetricCard = ({ value, status, name, unit, onClick }) => {
 
     const mockGraphData = [
         { value: 34.2 }, { value: 34.3 }, { value: 34.5 },
         { value: 34.4 }, { value: 34.7 }, { value: 34.8 }
     ];
 
+    const isNormal = status?.text === "v normě";
+    const statusColorClasses = isNormal
+      ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-300"
+      : "bg-orange-500/10 border border-orange-500/20 text-orange-300";
+    const statusArrow = isNormal ? "•" : "▼";
+
     return (
-  
-            /*container*/
-            <div className='bg-[#0C1A28] rounded-2xl border border-slate-700/50 overflow-hidden flex flex-col relative w-full'>
+            <button
+                type="button"
+                onClick={onClick}
+                className='relative z-0 flex w-full flex-col overflow-visible rounded-2xl border border-slate-700/50 bg-[#0C1A28] text-left transition-colors hover:border-slate-600/70'
+            >
                 <div className='p-4 pb-2'>
-                    <div className='flex justify-between items-center mb-2'>
+                    <div className='mb-2 flex items-center justify-between gap-3'>
                         <span className='text-slate-400 text-xs font-semibold tracking-wider uppercase'>
                             {name}
                         </span>
-                        {/*statuses pod cilem v norme a nad cilem*/}
-                        <div className='flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-500/10 border-orange-500/20'>
-                            <span className='text-orange-400 text-[10px]'>▼</span>
-                            <span className='text-orange-400 text-xs font-medium'>{status.text}</span>
+                        <div className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${statusColorClasses}`}>
+                            <span className='text-[10px]'>{statusArrow}</span>
+                            <span>{status.text}</span>
                         </div>
                     </div>
-                    <div className='flex justify-between items-end z-10 relative'>
+                    <div className='relative z-10 flex items-end justify-between'>
                         <div className='flex items-baseline gap-1'>
-                            <span className='text-4xl text-white font-light tracking-tight'>{value}</span>
-                            <span className='text-slate-400 text-sm'>{unit}</span>
+                            <span className='text-4xl font-light tracking-tight text-white'>{value}</span>
+                            <span className='text-sm text-slate-400'>{unit}</span>
                         </div>
-                        <button className='text-slate-500 mb-1 hover:text-white transition-colors'>
+                        <span className='mb-1 text-slate-500 transition-colors'>
                             <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
                                 <path d='M9 18l6-6-6-6' />
                             </svg>
-                        </button>
+                        </span>
                     </div>
                 </div>
 
                 {/*graphs*/}
-                <div className='h-12 w-full mt-auto'>
+                <div className='relative z-10 mt-auto h-12 w-full overflow-visible'>
                     <ResponsiveContainer width='100%' height='100%'>
                         <AreaChart
                             data={mockGraphData}
                             margin={{
                                 top: 0,
-                                right: 0,
-                                left: 0,
+                                right: 10,
+                                left: 10,
                                 bottom: 0,
                             }}
                         >
@@ -55,15 +86,19 @@ const MetricCard = ({ value, status, name, unit }) => {
                                 </linearGradient>
                             </defs>
                             <YAxis hide domain={['dataMin', 'dataMax']}/>
-                            <Tooltip contentStyle={{backgroundColor: '#121A21', borderColor: '#334155', color: '#fff'}}
-                            itemStyle={{color: '#3B82F6'}}
+                            <Tooltip
+                            content={(props) => <ChartTooltip {...props} unit={unit} />}
+                            cursor={{ stroke: '#7fb2ff', strokeWidth: 1, strokeOpacity: 0.8 }}
+                            offset={20}
+                            allowEscapeViewBox={{ x: false, y: true }}
+                            wrapperStyle={{ zIndex: 40, pointerEvents: 'none' }}
                             />
                             <Area type="monotone" dataKey="value" stroke="#3B82F6" strokeWidth={2} fillOpacity={1} fill="url(#colorValue)" />
                         </AreaChart>
                     </ResponsiveContainer>
 
                 </div>
-            </div>
+            </button>
     )
 }
 
