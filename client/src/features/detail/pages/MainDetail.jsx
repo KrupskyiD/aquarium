@@ -35,9 +35,6 @@ const pageContent = (
           </button>
           <h1 className="text-2xl font-bold">{aquarium?.name || "Hlavní nádrž"}</h1>
         </div>
-        <div className="rounded-full border border-emerald-400/30 bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-emerald-300">
-          LIVE
-        </div>
       </div>
         <div className='text-slate-400 text-xs font-semibold tracking-wider uppercase'>Metriky — kliknutím zobrazíte grafy</div>
       <MetricCard value={metrics.salt} status={metrics.limits.salt} name='Salinita' unit="ppt"/>
@@ -69,8 +66,7 @@ const pageContent = (
         <div className="mx-auto flex min-h-[calc(100vh-9rem)] w-full max-w-[760px] flex-col">
           
           {/* header */}
-          <div className="mb-8 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-4">
+          <div className="mb-8 flex items-center gap-4">
             <button 
               onClick={() => onNavigate(SCREENS.AQUARIUM)} 
               className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700/50 bg-[#121A21]"
@@ -79,11 +75,7 @@ const pageContent = (
                 <path d="M15 18l-6-6 6-6" />
               </svg>
             </button>
-              <h1 className="text-xl font-bold">{aquarium?.name || "Hlavní nádrž"}</h1>
-            </div>
-            <div className="rounded-full border border-emerald-400/30 bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-emerald-300">
-              LIVE
-            </div>
+            <h1 className="text-xl font-bold">{aquarium?.name || "Hlavní nádrž"}</h1>
           </div>
 
           {pageContent}
