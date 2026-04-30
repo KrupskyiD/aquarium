@@ -5,7 +5,7 @@ import AddAquariumForm from "../components/AddAquariumForm";
 import AquariumList from "../components/AquariumList";
 import EmptyState from "../components/EmptyState";
 
-const OverviewPage = ({ onNavigate }) => {
+const OverviewPage = ({ onNavigate, onOpenDetail }) => {
   const [view, setView] = useState("list");
   const [aquariums, setAquariums] = useState([]);
   const hasAquariums = aquariums.length > 0;
@@ -29,7 +29,11 @@ const OverviewPage = ({ onNavigate }) => {
   const listContent = (
     <div className="flex flex-1 items-start justify-center py-3 sm:py-6 md:py-8">
       {hasAquariums ? (
-        <AquariumList aquariums={aquariums} onAddAquarium={() => setView("form")} />
+        <AquariumList
+          aquariums={aquariums}
+          onAddAquarium={() => setView("form")}
+          onOpenDetail={onOpenDetail}
+        />
       ) : (
         <div className="flex w-full flex-1 items-center justify-center py-2 md:py-4">
           <EmptyState onAddAquarium={() => setView("form")} />

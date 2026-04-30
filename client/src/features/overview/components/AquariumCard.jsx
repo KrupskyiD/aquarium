@@ -12,9 +12,12 @@ const SensorTile = ({ label, value, unit }) => {
   );
 };
 
-const AquariumCard = ({ aquarium }) => {
+const AquariumCard = ({ aquarium, onOpenDetail }) => {
   return (
-    <article className="rounded-2xl border border-[#1f4576] bg-[#10233f] p-4 shadow-[0_16px_36px_rgba(1,10,30,0.45)]">
+    <article
+      onClick={() => onOpenDetail?.(aquarium)}
+      className="cursor-pointer rounded-2xl border border-[#1f4576] bg-[#10233f] p-4 shadow-[0_16px_36px_rgba(1,10,30,0.45)] transition-colors hover:border-[#2a5e9f]"
+    >
       <h3 className="text-lg font-bold text-white">{aquarium.name}</h3>
 
       <p className="mt-2 text-sm text-slate-300">

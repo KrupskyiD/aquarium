@@ -23,11 +23,10 @@ const parseStoredSession = () => {
 
 function App() {
   const [authSession, setAuthSession] = useState(() => parseStoredSession());
-  //for showing only a Detail screen
-  const [currentScreen, setCurrentScreen] = useState(SCREENS.DETAIL);
-  // const [currentScreen, setCurrentScreen] = useState(() =>
-  //   parseStoredSession() ? SCREENS.PROFILE : SCREENS.LOGIN,
-  // );
+  const [currentScreen, setCurrentScreen] = useState(() =>
+    parseStoredSession() ? SCREENS.PROFILE : SCREENS.LOGIN,
+  );
+  const [selectedAquarium, setSelectedAquarium] = useState(null);
   const [pendingRegistration, setPendingRegistration] = useState({
     email: "",
     name: "",
@@ -108,9 +107,14 @@ function App() {
         />
       )}
 
-      {}
       {effectiveScreen === SCREENS.AQUARIUM && (
-        <OverviewPage onNavigate={setCurrentScreen} />
+        <OverviewPage
+          onNavigate={setCurrentScreen}
+          onOpenDetail={(aquarium) => {
+            setSelectedAquarium(aquarium);
+            setCurrentScreen(SCREENS.DETAIL);
+          }}
+        />
       )}
 
       {(effectiveScreen === SCREENS.PROFILE ||
@@ -121,9 +125,11 @@ function App() {
         />
       )}
       {effectiveScreen === SCREENS.DETAIL && (
-        <MainDetail onNavigate={setCurrentScreen} />)}
+        <MainDetail onNavigate={setCurrentScreen} aquarium={selectedAquarium} />
+      )}
     </div>
   );
 }
+
 
 export default App;
