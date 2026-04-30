@@ -1,6 +1,30 @@
 import React from 'react'
 import { AreaChart, Area, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
+const TOOLTIP_WIDTH = 92;
+
+const ChartTooltip = ({ active, payload, unit, coordinate, viewBox }) => {
+    if (!active || !payload?.length) return null;
+
+    const value = Number(payload[0]?.value).toFixed(1);
+    const pointX = coordinate?.x ?? 0;
+    const chartLeft = viewBox?.x ?? 0;
+    const chartWidth = viewBox?.width ?? 0;
+    const rightEdge = chartLeft + chartWidth;
+    const shouldFlipLeft = pointX + TOOLTIP_WIDTH > rightEdge - 8;
+    const shouldPushRight = pointX < chartLeft + 8;
+
+    let xTranslateClass = "-translate-x-1/2";
+    if (shouldFlipLeft) xTranslateClass = "-translate-x-full -translate-x-2";
+    if (shouldPushRight) xTranslateClass = "translate-x-2";
+
+    return (
+        <div className={`rounded-md border border-slate-600/70 bg-[#071322]/95 px-2.5 py-1.5 text-xs font-medium text-slate-100 shadow-lg backdrop-blur-sm ${xTranslateClass}`}>
+            {value} {unit}
+        </div>
+    );
+};
+
 const MetricCard = ({ value, status, name, unit }) => {
 
     const mockGraphData = [
@@ -15,7 +39,7 @@ const MetricCard = ({ value, status, name, unit }) => {
     const statusArrow = isNormal ? "•" : "▼";
 
     return (
-            <div className='relative flex w-full flex-col overflow-hidden rounded-2xl border border-slate-700/50 bg-[#0C1A28]'>
+            <div className='relative z-0 flex w-full flex-col overflow-visible rounded-2xl border border-slate-700/50 bg-[#0C1A28]'>
                 <div className='p-4 pb-2'>
                     <div className='mb-2 flex items-center justify-between gap-3'>
                         <span className='text-slate-400 text-xs font-semibold tracking-wider uppercase'>
@@ -40,14 +64,14 @@ const MetricCard = ({ value, status, name, unit }) => {
                 </div>
 
                 {/*graphs*/}
-                <div className='mt-auto h-12 w-full'>
+                <div className='relative z-10 mt-auto h-12 w-full overflow-visible'>
                     <ResponsiveContainer width='100%' height='100%'>
                         <AreaChart
                             data={mockGraphData}
                             margin={{
                                 top: 0,
-                                right: 0,
-                                left: 0,
+                                right: 10,
+                                left: 10,
                                 bottom: 0,
                             }}
                         >
@@ -58,8 +82,12 @@ const MetricCard = ({ value, status, name, unit }) => {
                                 </linearGradient>
                             </defs>
                             <YAxis hide domain={['dataMin', 'dataMax']}/>
-                            <Tooltip contentStyle={{backgroundColor: '#121A21', borderColor: '#334155', color: '#fff'}}
-                            itemStyle={{color: '#3B82F6'}}
+                            <Tooltip
+                            content={(props) => <ChartTooltip {...props} unit={unit} />}
+                            cursor={{ stroke: '#7fb2ff', strokeWidth: 1, strokeOpacity: 0.8 }}
+                            offset={20}
+                            allowEscapeViewBox={{ x: false, y: true }}
+                            wrapperStyle={{ zIndex: 40, pointerEvents: 'none' }}
                             />
                             <Area type="monotone" dataKey="value" stroke="#3B82F6" strokeWidth={2} fillOpacity={1} fill="url(#colorValue)" />
                         </AreaChart>
