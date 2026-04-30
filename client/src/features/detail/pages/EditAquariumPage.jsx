@@ -1,11 +1,13 @@
 import { useMemo, useState } from "react";
 import DesktopAppLayout from "../../../shared/components/DesktopAppLayout";
+import DeleteConfirmationModal from "../../../shared/components/DeleteConfirmationModal";
 import { SCREENS } from "../../../shared/constants/screens";
 
 const EditAquariumPage = ({ aquarium, onNavigate, onSave, onDelete }) => {
   const [name, setName] = useState(aquarium?.name ?? "");
   const [volumeLiters, setVolumeLiters] = useState(String(aquarium?.volumeLiters ?? ""));
   const [aquariumType, setAquariumType] = useState(aquarium?.type ?? "marine");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const isFormValid = useMemo(() => {
     return name.trim().length > 0 && /^\d+$/.test(volumeLiters) && Number(volumeLiters) > 0;
@@ -27,10 +29,13 @@ const EditAquariumPage = ({ aquarium, onNavigate, onSave, onDelete }) => {
   };
 
   const handleDelete = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
     if (!aquarium?.id) return;
-    const confirmed = window.confirm("Opravdu si přejete smazat toto akvárium?");
-    if (!confirmed) return;
     onDelete?.(aquarium.id);
+    setIsModalOpen(false);
   };
 
   const content = (
@@ -139,6 +144,12 @@ const EditAquariumPage = ({ aquarium, onNavigate, onSave, onDelete }) => {
           Zrušit
         </button>
       </div>
+
+      <DeleteConfirmationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 
