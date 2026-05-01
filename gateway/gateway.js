@@ -43,7 +43,7 @@ parser.on('data', async function (data) {
                         'X-API-KEY': dataObject.device_serial
                     }
                 });
-                console.log("Отправленные данные:", dataObject);
+                // console.log("Sent data to server:", dataObject);
                 //updating storage
                 storage.salt = dataObject.salt;
                 storage.temperature = dataObject.temperature;
