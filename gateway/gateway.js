@@ -2,8 +2,8 @@ const { SerialPort } = require('serialport');
 const { ReadlineParser } = require('@serialport/parser-readline');
 const axios = require('axios');
 require('dotenv').config();
-import { sendDataToServer } from './controller/dataController.js';
-import { storage } from './storage/storage.js';
+const sendDataToServer = require('./controller/dataController.js');
+const storage = require('./storage/storage.js');
 
 const parser = new ReadlineParser({
     delimiter: '\r\n'
@@ -21,14 +21,14 @@ let port = new SerialPort({
 
 port.pipe(parser);
 
-parser.on('data',async function(data){
+parser.on('data', async function (data) {
 
     try {
         //split data in array by ":"
         const parsedData = data.split(':');
 
-        if(parsedData.length === 3) {
-           //create object for sending to the server
+        if (parsedData.length === 3) {
+            //create object for sending to the server
             const dataObject = {
                 device_serial: parsedData[0].trim(),
                 temperature: parseFloat(parsedData[1]),
@@ -36,18 +36,19 @@ parser.on('data',async function(data){
                 // timestamp: new Date().toISOString(),
             }
             //verification restrictions
-            if(sendDataToServer(dataObject)){
+            if (sendDataToServer(dataObject)) {
                 //if it passed, it'll send data
                 await axios.post(process.env.BACKEND_URL, dataObject, {
                     headers: {
                         'X-API-KEY': dataObject.device_serial
                     }
                 });
+                console.log("Отправленные данные:", dataObject);
+                //updating storage
+                storage.salt = dataObject.salt;
+                storage.temperature = dataObject.temperature;
+                storage.timestamp = Date.now();
             }
-            //updating storage
-            storage.salt = dataObject.salt;
-            storage.temperature = dataObject.temperature;
-            storage.timestamp = Date.now();
 
             //if it haven't passed the verification, it just ignores new metrics
         } else {
