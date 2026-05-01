@@ -1,7 +1,7 @@
 //limits for restriction sending data
  const limits ={
     tempConst: 0.2,
-    saltConst: 2,
+    saltConst: 0.1,
     timer: 5*60*1000 // 5 minutes. Send data every 5 minutes/timer
 }  
 
