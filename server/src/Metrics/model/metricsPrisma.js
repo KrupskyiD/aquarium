@@ -16,17 +16,3 @@ export const getMetricsFromDB = async (aquariumId, period, sensor) => {
 
   return result;
 };
-
-export const saveMetricsToDB = async (data) => {
-  return await prisma.metrics.create({
-    data: {
-      aquarium: {
-        connect: {
-          device_serial: data.device_serial,
-        },
-      },
-      temperature: data.temperature,
-      salinity: data.salt,
-    },
-  });
-};

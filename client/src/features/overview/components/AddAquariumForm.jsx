@@ -19,13 +19,12 @@ const AddAquariumForm = ({ onCancel, onAdd }) => {
     event.preventDefault();
 
     const formData = {
-      name,
-      volumeLiters,
-      aquariumType,
-      deviceNumber,
+      name: name.trim(),
+      volume: parseInt(volumeLiters, 10),
+      type: aquariumType,
+      device_number: deviceNumber.trim(),
     };
 
-    console.log("Add aquarium form:", formData);
     onAdd?.(formData);
   };
 

@@ -5,13 +5,21 @@ import AddAquariumForm from "../components/AddAquariumForm";
 import AquariumList from "../components/AquariumList";
 import EmptyState from "../components/EmptyState";
 
-const OverviewPage = ({ onNavigate, onOpenDetail, aquariums, onAddAquarium }) => {
+const OverviewPage = ({
+  onNavigate,
+  onOpenDetail,
+  aquariums,
+  aquariumsLoading,
+  onAddAquarium,
+}) => {
   const [view, setView] = useState("list");
   const hasAquariums = aquariums.length > 0;
 
   const listContent = (
     <div className="flex flex-1 items-start justify-center py-3 sm:py-6 md:py-8">
-      {hasAquariums ? (
+      {aquariumsLoading ? (
+        <p className="text-sm text-slate-400">Načítám akvária…</p>
+      ) : hasAquariums ? (
         <AquariumList
           aquariums={aquariums}
           onAddAquarium={() => setView("form")}

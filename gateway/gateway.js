@@ -30,23 +30,18 @@ parser.on('data', async function (data) {
         if (parsedData.length === 3) {
             //create object for sending to the server
             const dataObject = {
-                device_serial: parsedData[0].trim(),
-                temperature: parseFloat(parsedData[1]),
+                device_number: parsedData[0].trim(),
+                temp: parseFloat(parsedData[1]),
                 salt: parseFloat(parsedData[2]),
-                // timestamp: new Date().toISOString(),
-            }
-            //verification restrictions
+            };
             if (sendDataToServer(dataObject)) {
-                //if it passed, it'll send data
                 await axios.post(process.env.BACKEND_URL, dataObject, {
                     headers: {
-                        'X-API-KEY': dataObject.device_serial
-                    }
+                        "X-API-KEY": dataObject.device_number,
+                    },
                 });
-                // console.log("Sent data to server:", dataObject);
-                //updating storage
                 storage.salt = dataObject.salt;
-                storage.temperature = dataObject.temperature;
+                storage.temperature = dataObject.temp;
                 storage.timestamp = Date.now();
             }
 

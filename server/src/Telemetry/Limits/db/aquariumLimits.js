@@ -1,9 +1,9 @@
 import prisma from "../../../utils/prisma.js";
 
-export const getLimits = async (device_serial) => {
+export const getLimits = async (device_number) => {
     const limits = await prisma.aquarium.findFirst({
         where: {
-            device_serial: device_serial
+            device_number,
         },
         select: {
             min_salt: true,

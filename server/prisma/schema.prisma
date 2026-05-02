@@ -6,19 +6,24 @@ datasource db {
   provider = "postgresql"
 }
 
-model aquarium {
+model Aquarium {
   id            Int           @id @default(autoincrement())
   name          String        @db.VarChar(255)
+  volume        Int
+  type          String        @db.VarChar(255)
   user_id       Int
   min_salt      Decimal?      @db.Decimal
   max_salt      Decimal?      @db.Decimal
   min_temp      Decimal?      @db.Decimal
   max_temp      Decimal?      @db.Decimal
-  device_serial String?       @unique @db.VarChar(100)
+  device_number String        @unique @db.VarChar(100)
   created_at    DateTime?     @default(now()) @db.Timestamptz(6)
+  
   users         users         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   calibration   calibration[]
   metrics       metrics[]
+
+  @@map("aquariums")
 }
 
 model biotopes {
@@ -38,7 +43,8 @@ model calibration {
   duration_ms         Int?
   calibrated_at       DateTime? @default(now()) @db.Timestamptz(6)
   next_calibration_at DateTime? @db.Timestamptz(6)
-  aquarium            aquarium  @relation(fields: [aquarium_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  
+  aquarium            Aquarium  @relation(fields: [aquarium_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model metrics {
@@ -47,7 +53,9 @@ model metrics {
   temperature Decimal   @db.Decimal
   salinity    Decimal   @db.Decimal
   created_at  DateTime? @default(now()) @db.Timestamptz(6)
-  aquarium    aquarium  @relation(fields: [aquarium_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  
+ 
+  aquarium    Aquarium  @relation(fields: [aquarium_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model users {
@@ -58,7 +66,8 @@ model users {
   is_verified        Boolean?             @default(false)
   refresh_token      String?              @db.VarChar(255)
   created_at         DateTime?            @default(now()) @db.Timestamptz(6)
-  aquarium           aquarium[]
+  
+  aquarium           Aquarium[]
   verification_token verification_token[]
 }
 

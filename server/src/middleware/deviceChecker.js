@@ -11,7 +11,14 @@ export const deviceChecker = async(req, res, next) =>{
     //checking if the device is in db;
     const existedDevice = await findDeviceInDB(apiKey);
 
-    if(!existedDevice) return next(new customError('This device is not registered. Please check your device number.'), 403);
+    if(!existedDevice) return next(new customError('This device is not registered. Please check your device number.', 403));
+
+    if (
+        req.body?.device_number != null &&
+        String(req.body.device_number) !== String(apiKey)
+    ) {
+        return next(new customError('device_number must match X-API-KEY', 403));
+    }
 
     req.device = existedDevice;
 

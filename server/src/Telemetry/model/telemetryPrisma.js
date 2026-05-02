@@ -1,70 +1,19 @@
 import prisma from "../../utils/prisma.js";
 
-//saving new metrics to table metrics
-export const saveMetricsToDB= async (data) => {
-  //bringinng up keys from data object
-  const { device_serial, temperature, salt, timestamp } = data;
+export const saveMetricsToDB = async (data) => {
+  const { device_number, temperature, salt } = data;
 
-  const newMetrics = await prisma.metrics.create({
+  const aquarium = await prisma.aquarium.findUnique({
+    where: { device_number },
+  });
+
+  if (!aquarium) return null;
+
+  return prisma.metrics.create({
     data: {
-      aquarium: {
-        //finding out aquarium_id by using connect, which will find the if by unique serial device :^
-        connect: {
-          device_serial: device_serial,
-        },
-      },
-      temperature: temperature,
+      aquarium_id: aquarium.id,
+      temperature,
       salinity: salt,
-      //saving date, which was created at gateway or arduino layer. Perhaps will be implemented later
-      //created_at: timestamp,
     },
   });
-  return newMetrics;
 };
-
-//getting user's id from db with device_serial
-export const userDb = async(device_serial) => {
-  return await prisma.aquarium.findUnique({
-    where: {
-      device_serial: device_serial
-    },
-    select: {
-      user_id: true
-    }
-  });
-};
-
-//if it'll be needed in a future to do a two-step finding aquarium_id
-/** 
- * // src/models/telemetryModel.js
-import prisma from '../db.js'; // Твой файл с подключением к БД
-
-// Экспортируем функцию, которая принимает объект data
-export const saveTelemetryToDB = async (data) => {
-  // Вытаскиваем нужные поля из переданного объекта
-  const { device_serial, temperature, salinity } = data;
-
-  // 1. Ищем аквариум
-  const aquarium = await prisma.aquarium.findFirst({
-    where: { device_serial: device_serial }
-  });
-
-  if (!aquarium) {
-    // Если аквариума нет, просто бросаем ошибку. 
-    // Контроллер её поймает и решит, какой статус-код отдать.
-    throw new Error('UNREGISTERED_DEVICE');
-  }
-
-  // 2. Сохраняем метрику
-  const newMetric = await prisma.metricks.create({
-    data: {
-      temperature: temperature,
-      salinity: salinity,
-      aquarium_id: aquarium.id 
-    }
-  });
-
-  // Возвращаем сохраненную запись
-  return newMetric;
-};
- * */

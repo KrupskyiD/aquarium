@@ -5,19 +5,28 @@ import MetricCard from '../components/MetricCard'
 import ButtonCard from '../components/ButtonCard'
 
 const MainDetail = ({ onNavigate, aquarium, onOpenMetricDetail, onOpenEdit }) => {
+    const latest = aquarium?.metrics?.[0];
+    const salinityNum =
+      latest?.salinity != null ? Number(latest.salinity) : null;
+    const tempNum =
+      latest?.temperature != null ? Number(latest.temperature) : null;
+
+    const fmt = (n) =>
+      typeof n === "number" && Number.isFinite(n) ? n.toFixed(1) : "—";
+
     const metrics = {
-      salt: Number(aquarium?.salinity ?? 34.89).toFixed(1),
-      temp: Number(aquarium?.temperature ?? 28).toFixed(1),
+      salt: fmt(salinityNum),
+      temp: fmt(tempNum),
       limits: {
         salt: {
-          text: "pod cílem",
-          difference: 2
+          text: "v normě",
+          difference: 0,
         },
         temp: {
           text: "v normě",
-          difference: 0
+          difference: 0,
         },
-      }
+      },
     };
 
 const pageContent = (

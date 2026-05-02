@@ -5,7 +5,9 @@ import { SCREENS } from "../../../shared/constants/screens";
 
 const EditAquariumPage = ({ aquarium, onNavigate, onSave, onDelete }) => {
   const [name, setName] = useState(aquarium?.name ?? "");
-  const [volumeLiters, setVolumeLiters] = useState(String(aquarium?.volumeLiters ?? ""));
+  const [volumeLiters, setVolumeLiters] = useState(
+    String(aquarium?.volume ?? ""),
+  );
   const [aquariumType, setAquariumType] = useState(aquarium?.type ?? "marine");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -23,7 +25,7 @@ const EditAquariumPage = ({ aquarium, onNavigate, onSave, onDelete }) => {
     onSave?.({
       id: aquarium.id,
       name: name.trim(),
-      volumeLiters: Number(volumeLiters),
+      volume: Number(volumeLiters),
       type: aquariumType,
     });
   };

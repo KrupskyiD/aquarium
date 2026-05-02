@@ -15,7 +15,7 @@ function sendDataToServer(newData) {
         return true};
 
     //check if the one of metrics get above limit or equal to them
-    const temp = Math.abs(newData.temperature - storage.temperature) >= limits.tempConst;
+    const temp = Math.abs(newData.temp - storage.temperature) >= limits.tempConst;
     const salt = Math.abs(newData.salt - storage.salt) >= limits.saltConst;
     // console.log("Those what came:", newData);
 
