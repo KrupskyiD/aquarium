@@ -16,13 +16,24 @@ const SensorTile = ({ label, value, unit }) => {
   );
 };
 
-const AquariumCard = ({ aquarium, onOpenDetail }) => {
+const AquariumCard = ({ aquarium, onOpenDetail, liveMetrics }) => {
   const typeLabel = aquarium.type === "marine" ? "Mořské" : "Sladkovodní";
   const latest = aquarium.metrics?.[0];
-  const salinity =
-    latest?.salinity != null ? Number(latest.salinity) : null;
-  const temperature =
-    latest?.temperature != null ? Number(latest.temperature) : null;
+  // Логика фоллбэка, как в MainDetail
+  // Важное уточнение: если у тебя будет МНОГО аквариумов, тебе нужно будет сверять 
+  // liveMetrics.device_serial с aquarium.device_serial, чтобы не засунуть температуру 
+  // первого аквариума во второй.
+  const hasLiveData = liveMetrics && liveMetrics.temp !== null;
+  // Если устройство совпадает (или если аквариум пока один), берем сокет, иначе БД
+  const isThisDevice = hasLiveData && liveMetrics.device_serial === aquarium.device_serial;
+
+  const salinity = isThisDevice
+    ? Number(liveMetrics.salt)
+    : latest?.salinity != null ? Number(latest.salinity) : null;
+
+  const temperature = isThisDevice
+    ? Number(liveMetrics.temp)
+    : latest?.temperature != null ? Number(latest.temperature) : null;
 
   return (
     <article

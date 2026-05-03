@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { SCREENS } from "../../../shared/constants/screens";
 import DesktopAppLayout from "../../../shared/components/DesktopAppLayout";
 import AddAquariumForm from "../components/AddAquariumForm";
 import AquariumList from "../components/AquariumList";
 import EmptyState from "../components/EmptyState";
+import { MetricsContext } from "../../../context/MetricsContext";
 
 const OverviewPage = ({
   onNavigate,
@@ -13,6 +14,9 @@ const OverviewPage = ({
   onAddAquarium,
 }) => {
   const [view, setView] = useState("list");
+
+  const { metrics: liveMetrics } = useContext(MetricsContext);
+
   const hasAquariums = aquariums.length > 0;
 
   const listContent = (
@@ -22,6 +26,7 @@ const OverviewPage = ({
       ) : hasAquariums ? (
         <AquariumList
           aquariums={aquariums}
+          liveMetrics={liveMetrics}
           onAddAquarium={() => setView("form")}
           onOpenDetail={onOpenDetail}
         />

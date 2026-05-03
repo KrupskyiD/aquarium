@@ -11,6 +11,7 @@ import ProfilePage from "./features/user/pages/ProfilePage";
 import OverviewPage from "./features/overview/pages/OverviewPage";
 import UserBottomNav from "./shared/components/UserBottomNav";
 import { SCREENS } from "./shared/constants/screens";
+import { MetricsProvider } from "./context/MetricsContext";
 import {
   fetchAquariums,
   fetchAquariumById,
@@ -103,7 +104,7 @@ function App() {
         name: formData.name.trim(),
         volume: formData.volume,
         type: formData.type,
-        device_number: formData.device_number.trim(),
+        device_serial: formData.device_number.trim(),
       });
       await loadAquariums();
     } catch (err) {
@@ -210,25 +211,19 @@ function App() {
           onLogout={handleLogout}
         />
       )}
-
-      {effectiveScreen === SCREENS.AQUARIUM && (
-        <OverviewPage
+      {(effectiveScreen === SCREENS.AQUARIUM || effectiveScreen === SCREENS.DETAIL) && (
+        <MetricsProvider>
+          
+        {effectiveScreen === SCREENS.AQUARIUM && (
+          <OverviewPage
           onNavigate={setCurrentScreen}
           aquariums={aquariums}
           aquariumsLoading={aquariumsLoading}
           onAddAquarium={handleAddAquarium}
           onOpenDetail={openAquariumDetail}
-        />
-      )}
-
-      {(effectiveScreen === SCREENS.PROFILE ||
-        effectiveScreen === SCREENS.AQUARIUM) && (
-        <UserBottomNav
-          currentScreen={effectiveScreen}
-          onNavigate={setCurrentScreen}
-        />
-      )}
-      {effectiveScreen === SCREENS.DETAIL && (
+          />
+        )}
+        {effectiveScreen === SCREENS.DETAIL && (
         <MainDetail
           onNavigate={setCurrentScreen}
           aquarium={selectedAquarium}
@@ -239,6 +234,17 @@ function App() {
           onOpenEdit={() => setCurrentScreen(SCREENS.EDIT_AQUARIUM)}
         />
       )}
+        </MetricsProvider>
+
+           )}
+      {(effectiveScreen === SCREENS.PROFILE ||
+        effectiveScreen === SCREENS.AQUARIUM) && (
+        <UserBottomNav
+          currentScreen={effectiveScreen}
+          onNavigate={setCurrentScreen}
+        />
+      )}
+      
       {effectiveScreen === SCREENS.METRIC_DETAIL && (
         <MetricDetailPage
           aquarium={selectedAquarium}
