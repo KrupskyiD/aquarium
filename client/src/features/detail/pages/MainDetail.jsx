@@ -1,23 +1,73 @@
-import React from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { SCREENS } from "../../../shared/constants/screens";
 import DesktopAppLayout from "../../../shared/components/DesktopAppLayout";
 import MetricCard from '../components/MetricCard'
 import ButtonCard from '../components/ButtonCard'
+import { useSocket } from "../../../context/SocketContext.jsx"
+
+const DEFAULT_LIMITS = {
+  salt: { text: "pod cílem", difference: 2 },
+  temp: { text: "v normě", difference: 0 },
+};
 
 const MainDetail = ({ onNavigate, aquarium, onOpenMetricDetail, onOpenEdit }) => {
+    const socket = useSocket();
+    const currentAquariumId = aquarium?.id;
+    const lastAquariumIdRef = useRef(null);
+
+    const [currentMetrics, setCurrentMetrics] = useState(() => ({
+      salinity: Number(aquarium?.salinity ?? 34.89),
+      temperature: Number(aquarium?.temperature ?? 28),
+      limits: { ...DEFAULT_LIMITS },
+    }));
+
+    useEffect(() => {
+      if (aquarium?.id == null) return;
+      const switchedTank = lastAquariumIdRef.current !== aquarium.id;
+      lastAquariumIdRef.current = aquarium.id;
+
+      setCurrentMetrics((prev) => ({
+        salinity: Number(aquarium.salinity ?? prev.salinity ?? 34.89),
+        temperature: Number(aquarium.temperature ?? prev.temperature ?? 28),
+        limits: switchedTank ? { ...DEFAULT_LIMITS } : prev.limits,
+      }));
+    }, [aquarium?.id, aquarium?.salinity, aquarium?.temperature]);
+
+    useEffect(() => {
+      if (!socket || currentAquariumId == null) return;
+
+      const onSensorUpdate = (incomingData) => {
+        const payloadId = incomingData?.aquarium_id;
+        if (payloadId == null || Number(payloadId) !== Number(currentAquariumId)) return;
+
+        const nextSalt =
+          incomingData.salt ?? incomingData.salinity;
+        const nextTemp =
+          incomingData.temp ?? incomingData.temperature;
+        const limitsPayload = incomingData.limits ?? incomingData.limitsStatus;
+
+        setCurrentMetrics((prev) => ({
+          salinity: nextSalt != null ? Number(nextSalt) : prev.salinity,
+          temperature: nextTemp != null ? Number(nextTemp) : prev.temperature,
+          limits: limitsPayload
+            ? {
+                salt: limitsPayload.salt ?? prev.limits.salt,
+                temp: limitsPayload.temp ?? prev.limits.temp,
+              }
+            : prev.limits,
+        }));
+      };
+
+      socket.on("sensor_update", onSensorUpdate);
+      return () => {
+        socket.off("sensor_update", onSensorUpdate);
+      };
+    }, [socket, currentAquariumId]);
+
     const metrics = {
-      salt: Number(aquarium?.salinity ?? 34.89).toFixed(1),
-      temp: Number(aquarium?.temperature ?? 28).toFixed(1),
-      limits: {
-        salt: {
-          text: "pod cílem",
-          difference: 2
-        },
-        temp: {
-          text: "v normě",
-          difference: 0
-        },
-      }
+      salt: currentMetrics.salinity.toFixed(1),
+      temp: currentMetrics.temperature.toFixed(1),
+      limits: currentMetrics.limits,
     };
 
 const pageContent = (
