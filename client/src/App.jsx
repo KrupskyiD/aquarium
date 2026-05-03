@@ -8,6 +8,9 @@ import MetricDetailPage from "./features/detail/pages/MetricDetailPage";
 import EditAquariumPage from "./features/detail/pages/EditAquariumPage";
 import WelcomePage from "./features/auth/pages/WelcomePage";
 import ProfilePage from "./features/user/pages/ProfilePage";
+import EditProfilePage from "./features/user/pages/EditProfilePage";
+import ChangePasswordPage from "./features/user/pages/ChangePasswordPage";
+import AboutAppPage from "./features/user/pages/AboutAppPage";
 import OverviewPage from "./features/overview/pages/OverviewPage";
 import UserBottomNav from "./shared/components/UserBottomNav";
 import { SCREENS } from "./shared/constants/screens";
@@ -58,6 +61,9 @@ function App() {
     !authSession &&
     (
       currentScreen === SCREENS.PROFILE ||
+      currentScreen === SCREENS.EDIT_PROFILE ||
+      currentScreen === SCREENS.CHANGE_PASSWORD ||
+      currentScreen === SCREENS.ABOUT_APP ||
       currentScreen === SCREENS.AQUARIUM ||
       currentScreen === SCREENS.DETAIL ||
       currentScreen === SCREENS.METRIC_DETAIL ||
@@ -211,6 +217,28 @@ function App() {
           onLogout={handleLogout}
         />
       )}
+      {effectiveScreen === SCREENS.EDIT_PROFILE && (
+        <EditProfilePage
+          onNavigate={setCurrentScreen}
+          accessToken={authSession?.accessToken}
+          authUser={authSession?.user}
+          onProfileUpdated={(updatedUser) => {
+            setAuthSession((prev) =>
+              prev ? { ...prev, user: updatedUser } : prev,
+            );
+          }}
+        />
+      )}
+      {effectiveScreen === SCREENS.CHANGE_PASSWORD && (
+        <ChangePasswordPage
+          onNavigate={setCurrentScreen}
+          accessToken={authSession?.accessToken}
+          onPasswordChanged={handleLogout}
+        />
+      )}
+      {effectiveScreen === SCREENS.ABOUT_APP && (
+        <AboutAppPage onNavigate={setCurrentScreen} />
+      )}
       {(effectiveScreen === SCREENS.AQUARIUM || effectiveScreen === SCREENS.DETAIL) && (
         <MetricsProvider>
           
@@ -238,9 +266,18 @@ function App() {
 
            )}
       {(effectiveScreen === SCREENS.PROFILE ||
+        effectiveScreen === SCREENS.EDIT_PROFILE ||
+        effectiveScreen === SCREENS.CHANGE_PASSWORD ||
+        effectiveScreen === SCREENS.ABOUT_APP ||
         effectiveScreen === SCREENS.AQUARIUM) && (
         <UserBottomNav
-          currentScreen={effectiveScreen}
+          currentScreen={
+            effectiveScreen === SCREENS.EDIT_PROFILE ||
+            effectiveScreen === SCREENS.CHANGE_PASSWORD ||
+            effectiveScreen === SCREENS.ABOUT_APP
+              ? SCREENS.PROFILE
+              : effectiveScreen
+          }
           onNavigate={setCurrentScreen}
         />
       )}
