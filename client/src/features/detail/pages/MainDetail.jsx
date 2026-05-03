@@ -1,24 +1,33 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { SCREENS } from "../../../shared/constants/screens";
+import { MetricsContext } from '../../../context/MetricsContext.jsx'
 import DesktopAppLayout from "../../../shared/components/DesktopAppLayout";
 import MetricCard from '../components/MetricCard'
 import ButtonCard from '../components/ButtonCard'
 
 const MainDetail = ({ onNavigate, aquarium, onOpenMetricDetail, onOpenEdit }) => {
-    const metrics = {
-      salt: Number(aquarium?.salinity ?? 34.89).toFixed(1),
-      temp: Number(aquarium?.temperature ?? 28).toFixed(1),
-      limits: {
-        salt: {
-          text: "pod cílem",
-          difference: 2
-        },
-        temp: {
-          text: "v normě",
-          difference: 0
-        },
-      }
-    };
+   const { metrics: liveMetrics, history } = useContext(MetricsContext);
+
+  const latest = aquarium?.metrics?.[0];
+
+  // Флаг: получили ли мы уже данные из сокета
+  const hasLiveData = liveMetrics && liveMetrics.limits !== null;
+
+  // Если сокет уже работает — берем его данные. Иначе — берем статику из БД
+  const salinityNum = hasLiveData ? Number(liveMetrics.salt) : (latest?.salinity != null ? Number(latest.salinity) : null);
+  const tempNum = hasLiveData ? Number(liveMetrics.temp) : (latest?.temperature != null ? Number(latest.temperature) : null);
+
+  const fmt = (n) => typeof n === "number" && Number.isFinite(n) ? n.toFixed(1) : "—";
+
+  // Собираем объект для рендера
+  const displayMetrics = {
+    salt: fmt(salinityNum),
+    temp: fmt(tempNum),
+    limits: hasLiveData ? liveMetrics.limits : {
+      salt: { text: "načítání...", difference: 0 },
+      temp: { text: "načítání...", difference: 0 },
+    },
+  };
 
 const pageContent = (
     <div className="mt-4 flex w-full flex-col gap-4 md:mt-2">
@@ -38,17 +47,19 @@ const pageContent = (
       </div>
         <div className='text-slate-400 text-xs font-semibold tracking-wider uppercase'>Metriky — kliknutím zobrazíte grafy</div>
       <MetricCard
-        value={metrics.salt}
-        status={metrics.limits.salt}
+        value={displayMetrics.salt}
+        status={displayMetrics.limits.salt}
         name='Salinita'
         unit="ppt"
+        graphData={history.salt}
         onClick={() => onOpenMetricDetail?.("salinity")}
       />
       <MetricCard
-        value={metrics.temp}
-        status={metrics.limits.temp}
+        value={displayMetrics.temp}
+        status={displayMetrics.limits.temp}
         name='Teplota'
         unit='°C'
+        graphData={history.temp}
         onClick={() => onOpenMetricDetail?.("temperature")}
       />
 
@@ -109,4 +120,3 @@ const pageContent = (
 }
 
 export default MainDetail
-

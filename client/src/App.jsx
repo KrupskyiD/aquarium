@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import "./App.css";
 import LoginPage from "./features/auth/pages/LoginPage";
 import RegisterPage from "./features/auth/pages/RegisterPage";
@@ -11,6 +11,14 @@ import ProfilePage from "./features/user/pages/ProfilePage";
 import OverviewPage from "./features/overview/pages/OverviewPage";
 import UserBottomNav from "./shared/components/UserBottomNav";
 import { SCREENS } from "./shared/constants/screens";
+import { MetricsProvider } from "./context/MetricsContext";
+import {
+  fetchAquariums,
+  fetchAquariumById,
+  createAquarium,
+  updateAquarium,
+  deleteAquarium,
+} from "./features/aquarium/api/aquariumApi";
 
 const AUTH_SESSION_STORAGE_KEY = "saltguard.auth.session";
 
@@ -29,6 +37,7 @@ function App() {
     parseStoredSession() ? SCREENS.PROFILE : SCREENS.LOGIN,
   );
   const [aquariums, setAquariums] = useState([]);
+  const [aquariumsLoading, setAquariumsLoading] = useState(false);
   const [selectedAquarium, setSelectedAquarium] = useState(null);
   const [selectedMetric, setSelectedMetric] = useState("salinity");
   const [pendingRegistration, setPendingRegistration] = useState({
@@ -57,6 +66,25 @@ function App() {
       ? SCREENS.LOGIN
       : currentScreen;
 
+  const loadAquariums = useCallback(async () => {
+    if (!authSession?.accessToken) return;
+    setAquariumsLoading(true);
+    try {
+      const list = await fetchAquariums(authSession.accessToken);
+      setAquariums(Array.isArray(list) ? list : []);
+    } catch (err) {
+      console.error(err);
+      setAquariums([]);
+    } finally {
+      setAquariumsLoading(false);
+    }
+  }, [authSession?.accessToken]);
+
+  useEffect(() => {
+    if (!authSession?.accessToken || effectiveScreen !== SCREENS.AQUARIUM) return;
+    loadAquariums();
+  }, [authSession?.accessToken, effectiveScreen, loadAquariums]);
+
   const handleLoginSuccess = ({ user, accessToken, refreshToken }) => {
     setAuthSession({ user, accessToken, refreshToken });
     setCurrentScreen(SCREENS.PROFILE);
@@ -65,57 +93,73 @@ function App() {
   const handleLogout = () => {
     setAuthSession(null);
     setCurrentScreen(SCREENS.LOGIN);
-  };
-
-  const handleAddAquarium = (formData) => {
-    const createdAquarium = {
-      id: crypto.randomUUID(),
-      name: formData.name.trim(),
-      volumeLiters: Number(formData.volumeLiters),
-      type: formData.aquariumType,
-      typeLabel: formData.aquariumType === "marine" ? "Mořské" : "Sladkovodní",
-      deviceNumber: formData.deviceNumber.trim(),
-      salinity: 35.2,
-      temperature: 25.4,
-    };
-
-    setAquariums((prev) => [createdAquarium, ...prev]);
-  };
-
-  const handleSaveAquarium = ({ id, name, volumeLiters, type }) => {
-    setAquariums((prev) =>
-      prev.map((aquarium) =>
-        aquarium.id === id
-          ? {
-              ...aquarium,
-              name,
-              volumeLiters,
-              type,
-              typeLabel: type === "marine" ? "Mořské" : "Sladkovodní",
-            }
-          : aquarium,
-      ),
-    );
-
-    setSelectedAquarium((prev) =>
-      prev && prev.id === id
-        ? {
-            ...prev,
-            name,
-            volumeLiters,
-            type,
-            typeLabel: type === "marine" ? "Mořské" : "Sladkovodní",
-          }
-        : prev,
-    );
-
-    setCurrentScreen(SCREENS.DETAIL);
-  };
-
-  const handleDeleteAquarium = (aquariumId) => {
-    setAquariums((prev) => prev.filter((aquarium) => aquarium.id !== aquariumId));
+    setAquariums([]);
     setSelectedAquarium(null);
-    setCurrentScreen(SCREENS.AQUARIUM);
+  };
+
+  const handleAddAquarium = async (formData) => {
+    if (!authSession?.accessToken) return;
+    try {
+      await createAquarium(authSession.accessToken, {
+        name: formData.name.trim(),
+        volume: formData.volume,
+        type: formData.type,
+        device_serial: formData.device_number.trim(),
+      });
+      await loadAquariums();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleSaveAquarium = async ({ id, name, volume, type }) => {
+    if (!authSession?.accessToken) return;
+    try {
+      const updated = await updateAquarium(authSession.accessToken, id, {
+        name,
+        volume,
+        type,
+      });
+      if (updated) {
+        setAquariums((prev) =>
+          prev.map((a) => (a.id === updated.id ? updated : a)),
+        );
+        setSelectedAquarium((prev) =>
+          prev && prev.id === updated.id ? updated : prev,
+        );
+      }
+      setCurrentScreen(SCREENS.DETAIL);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteAquarium = async (aquariumId) => {
+    if (!authSession?.accessToken) return;
+    try {
+      await deleteAquarium(authSession.accessToken, aquariumId);
+      setAquariums((prev) => prev.filter((a) => a.id !== aquariumId));
+      setSelectedAquarium(null);
+      setCurrentScreen(SCREENS.AQUARIUM);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const openAquariumDetail = async (aquarium) => {
+    if (!authSession?.accessToken) {
+      setSelectedAquarium(aquarium);
+      setCurrentScreen(SCREENS.DETAIL);
+      return;
+    }
+    try {
+      const fresh = await fetchAquariumById(authSession.accessToken, aquarium.id);
+      setSelectedAquarium(fresh ?? aquarium);
+    } catch (err) {
+      console.error(err);
+      setSelectedAquarium(aquarium);
+    }
+    setCurrentScreen(SCREENS.DETAIL);
   };
 
   return (
@@ -167,27 +211,19 @@ function App() {
           onLogout={handleLogout}
         />
       )}
-
-      {effectiveScreen === SCREENS.AQUARIUM && (
-        <OverviewPage
+      {(effectiveScreen === SCREENS.AQUARIUM || effectiveScreen === SCREENS.DETAIL) && (
+        <MetricsProvider>
+          
+        {effectiveScreen === SCREENS.AQUARIUM && (
+          <OverviewPage
           onNavigate={setCurrentScreen}
           aquariums={aquariums}
+          aquariumsLoading={aquariumsLoading}
           onAddAquarium={handleAddAquarium}
-          onOpenDetail={(aquarium) => {
-            setSelectedAquarium(aquarium);
-            setCurrentScreen(SCREENS.DETAIL);
-          }}
-        />
-      )}
-
-      {(effectiveScreen === SCREENS.PROFILE ||
-        effectiveScreen === SCREENS.AQUARIUM) && (
-        <UserBottomNav
-          currentScreen={effectiveScreen}
-          onNavigate={setCurrentScreen}
-        />
-      )}
-      {effectiveScreen === SCREENS.DETAIL && (
+          onOpenDetail={openAquariumDetail}
+          />
+        )}
+        {effectiveScreen === SCREENS.DETAIL && (
         <MainDetail
           onNavigate={setCurrentScreen}
           aquarium={selectedAquarium}
@@ -198,6 +234,17 @@ function App() {
           onOpenEdit={() => setCurrentScreen(SCREENS.EDIT_AQUARIUM)}
         />
       )}
+        </MetricsProvider>
+
+           )}
+      {(effectiveScreen === SCREENS.PROFILE ||
+        effectiveScreen === SCREENS.AQUARIUM) && (
+        <UserBottomNav
+          currentScreen={effectiveScreen}
+          onNavigate={setCurrentScreen}
+        />
+      )}
+      
       {effectiveScreen === SCREENS.METRIC_DETAIL && (
         <MetricDetailPage
           aquarium={selectedAquarium}

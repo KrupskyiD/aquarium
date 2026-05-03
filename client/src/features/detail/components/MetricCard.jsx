@@ -25,18 +25,15 @@ const ChartTooltip = ({ active, payload, unit, coordinate, viewBox }) => {
     );
 };
 
-const MetricCard = ({ value, status, name, unit, onClick }) => {
-
-    const mockGraphData = [
-        { value: 34.2 }, { value: 34.3 }, { value: 34.5 },
-        { value: 34.4 }, { value: 34.7 }, { value: 34.8 }
-    ];
+const MetricCard = ({ value, status, name, unit, onClick, graphData = [] }) => {
 
     const isNormal = status?.text === "v normě";
     const statusColorClasses = isNormal
       ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-300"
       : "bg-orange-500/10 border border-orange-500/20 text-orange-300";
     const statusArrow = isNormal ? "•" : "▼";
+
+    const displayData = graphData.length > 0 ? graphData : [{ value: Number(value) || 0 }];
 
     return (
             <button
@@ -71,7 +68,7 @@ const MetricCard = ({ value, status, name, unit, onClick }) => {
                 <div className='relative z-10 mt-auto h-12 w-full overflow-visible'>
                     <ResponsiveContainer width='100%' height='100%'>
                         <AreaChart
-                            data={mockGraphData}
+                            data={displayData}
                             margin={{
                                 top: 0,
                                 right: 10,

@@ -1,19 +1,32 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { SCREENS } from "../../../shared/constants/screens";
 import DesktopAppLayout from "../../../shared/components/DesktopAppLayout";
 import AddAquariumForm from "../components/AddAquariumForm";
 import AquariumList from "../components/AquariumList";
 import EmptyState from "../components/EmptyState";
+import { MetricsContext } from "../../../context/MetricsContext";
 
-const OverviewPage = ({ onNavigate, onOpenDetail, aquariums, onAddAquarium }) => {
+const OverviewPage = ({
+  onNavigate,
+  onOpenDetail,
+  aquariums,
+  aquariumsLoading,
+  onAddAquarium,
+}) => {
   const [view, setView] = useState("list");
+
+  const { metrics: liveMetrics } = useContext(MetricsContext);
+
   const hasAquariums = aquariums.length > 0;
 
   const listContent = (
     <div className="flex flex-1 items-start justify-center py-3 sm:py-6 md:py-8">
-      {hasAquariums ? (
+      {aquariumsLoading ? (
+        <p className="text-sm text-slate-400">Načítám akvária…</p>
+      ) : hasAquariums ? (
         <AquariumList
           aquariums={aquariums}
+          liveMetrics={liveMetrics}
           onAddAquarium={() => setView("form")}
           onOpenDetail={onOpenDetail}
         />

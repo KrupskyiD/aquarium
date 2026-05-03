@@ -8,7 +8,7 @@ const formatCount = (count) => {
   return `${count} zařízení`;
 };
 
-const AquariumList = ({ aquariums, onAddAquarium, onOpenDetail }) => {
+const AquariumList = ({ aquariums, onAddAquarium, onOpenDetail, liveMetrics }) => {
   return (
     <section className="w-full">
       <div className="mb-5 flex items-center justify-between gap-3">
@@ -28,7 +28,7 @@ const AquariumList = ({ aquariums, onAddAquarium, onOpenDetail }) => {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {aquariums.map((aquarium) => (
-          <AquariumCard key={aquarium.id} aquarium={aquarium} onOpenDetail={onOpenDetail} />
+          <AquariumCard key={aquarium.id} aquarium={aquarium} onOpenDetail={onOpenDetail} liveMetrics={liveMetrics}/>
         ))}
       </div>
     </section>

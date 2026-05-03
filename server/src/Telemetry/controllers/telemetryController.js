@@ -32,6 +32,10 @@ export const telemetryController = asyncErrorHandler(async (req, res, next) => {
     //create room for the user using his id as the name for room. Socket doesn't understand integer. so we need make a string from number
     const userRoomId = getUsersId.user_id.toString();
 
+    // console.log("=== POSTMAN ПРИСЛАЛ ДАННЫЕ ===");
+    // console.log("Пытаемся отправить данные в комнату:", userRoomId);
+    // console.log("Сами метрики:", metrics);
+
     // send metricks to client to endpoint 'dashboard-metricks' to user's room
     getIO().to(userRoomId).emit('dashboard-metrics', metrics);
 
