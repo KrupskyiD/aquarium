@@ -78,12 +78,12 @@ const ProfilePage = ({ onNavigate, authUser, accessToken, onLogout }) => {
             <RowLink
               icon={<UserRound size={16} />}
               label="Upravit profil"
-              onClick={() => {}}
+              onClick={() => onNavigate?.(SCREENS.EDIT_PROFILE)}
             />
             <RowLink
               icon={<Lock size={16} />}
               label="Změnit heslo"
-              onClick={() => {}}
+              onClick={() => onNavigate?.(SCREENS.CHANGE_PASSWORD)}
             />
           </div>
         </section>
@@ -97,7 +97,7 @@ const ProfilePage = ({ onNavigate, authUser, accessToken, onLogout }) => {
               icon={<CircleHelp size={16} />}
               label="O aplikaci"
               suffix="v1.0.0"
-              onClick={() => {}}
+              onClick={() => onNavigate?.(SCREENS.ABOUT_APP)}
             />
             <RowLink
               icon={<LogOut size={16} />}
