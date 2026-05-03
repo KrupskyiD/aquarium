@@ -6,6 +6,12 @@ export const findUserByEmail = async (email) => {
   });
 };
 
+export const findUserById = async (userId) => {
+  return await prisma.users.findUnique({
+    where: { id: userId },
+  });
+};
+
 export const createUser = async (userData) => {
   return await prisma.users.create({
     data: userData,
@@ -60,5 +66,12 @@ export const updateUserRefreshToken = async (userId, refreshToken) => {
 export const findUserByRefreshToken = async (refreshToken) => {
   return await prisma.users.findFirst({
     where: { refresh_token: refreshToken },
+  });
+};
+
+export const updateUserProfile = async (userId, profileData) => {
+  return await prisma.users.update({
+    where: { id: userId },
+    data: profileData,
   });
 };

@@ -6,6 +6,8 @@ import {
   resendVerificationEmail,
   refresh,
   logout,
+  getMe,
+  updateProfile,
 } from "../controllers/authController.js";
 import { authenticate } from "../../middleware/authMiddleware.js";
 
@@ -28,5 +30,11 @@ router.post("/refresh", refresh);
 
 // POST /api/auth/logout
 router.post("/logout", authenticate, logout);
+
+// GET /api/auth/me
+router.get("/me", authenticate, getMe);
+
+// PATCH /api/auth/profile
+router.patch("/profile", authenticate, updateProfile);
 
 export default router;
