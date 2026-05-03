@@ -13,6 +13,7 @@ import {
   updateUserRefreshToken,
   findUserByRefreshToken,
   updateUserProfile,
+  updateUserPassword,
 } from "../model/userPrisma.js";
 import { sendVerificationEmail } from "../../utils/mailer.js";
 
@@ -414,6 +415,64 @@ export const updateProfile = async (req, res) => {
     return res.status(500).json({
       status: "error",
       message: "Cannot update profile",
+    });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        status: "error",
+        message: "Current password and new password are required",
+      });
+    }
+
+    const user = await findUserById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        message: "User not found",
+      });
+    }
+
+    const isCurrentPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password_hash,
+    );
+
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({
+        status: "error",
+        message: "Current password is invalid",
+      });
+    }
+
+    if (currentPassword === newPassword) {
+      return res.status(400).json({
+        status: "error",
+        message: "New password must be different from current password",
+      });
+    }
+
+    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+
+    await updateUserPassword(userId, newPasswordHash);
+    await updateUserRefreshToken(userId, null);
+
+    return res.status(200).json({
+      status: "success",
+      message: "Password changed successfully",
+    });
+  } catch (e) {
+    console.log(`Error changing password: ${e}`);
+    return res.status(500).json({
+      status: "error",
+      message: "Cannot change password",
     });
   }
 };

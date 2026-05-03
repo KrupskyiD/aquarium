@@ -75,3 +75,10 @@ export const updateUserProfile = async (userId, profileData) => {
     data: profileData,
   });
 };
+
+export const updateUserPassword = async (userId, passwordHash) => {
+  return await prisma.users.update({
+    where: { id: userId },
+    data: { password_hash: passwordHash },
+  });
+};

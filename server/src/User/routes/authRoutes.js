@@ -8,6 +8,7 @@ import {
   logout,
   getMe,
   updateProfile,
+  changePassword,
 } from "../controllers/authController.js";
 import { authenticate } from "../../middleware/authMiddleware.js";
 
@@ -36,5 +37,8 @@ router.get("/me", authenticate, getMe);
 
 // PATCH /api/auth/profile
 router.patch("/profile", authenticate, updateProfile);
+
+// PATCH /api/auth/password
+router.patch("/password", authenticate, changePassword);
 
 export default router;
