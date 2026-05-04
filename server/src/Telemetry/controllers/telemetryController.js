@@ -1,4 +1,4 @@
-import asyncErrorHandler from '../../errorHandlers/asyncErrorHandler.js';
+import asyncErrorHandler from '../../ErrorHandlers/asyncErrorHandler.js';
 import { saveMetricsToDB } from '../model/telemetryPrisma.js';
 import { getIO } from '../../../Socket/socket.js';
 import { customError } from '../../ErrorHandlers/customError.js';
