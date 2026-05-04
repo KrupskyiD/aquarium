@@ -2,16 +2,19 @@
   "name": "gateway",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "gateway.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "nodemon gateway.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "serialport": "^13.0.0",
-    "socket.io": "^4.8.3"
+    "@serialport/parser-readline": "^13.0.0",
+    "axios": "^1.14.0",
+    "dotenv": "^17.4.0",
+    "nodemon": "^3.1.14",
+    "serialport": "^13.0.0"
   }
 }

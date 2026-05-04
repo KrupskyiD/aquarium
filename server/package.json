@@ -4,7 +4,6 @@
   "description": "IoT system with cloud for controlling air, tempreture and salt of water.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.js"
   },
   "repository": {
@@ -22,8 +21,12 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.6.0",
     "@prisma/client": "^7.6.0",
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "express": "^5.2.1",
+    "express-validator": "^7.3.2",
+    "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^8.0.4",
     "pg": "^8.20.0",
     "socket.io": "^4.8.3"
   },

@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg-app: #0b1120;
+  --color-surface: #111827;
+  --color-border: #1f2937;
+  --color-primary: #2563eb;
+  --color-primary-hover: #3b82f6;
+  --color-text-muted: #9ca3af;
+  --color-text-subtle: #6b7280;
+  --color-success: #22c55e;
+  --color-danger: #ef4444;
+  --auth-card-border: #1b2a47;
+  --auth-card-gradient: radial-gradient(
+    circle at 50% 8%,
+    rgba(37, 99, 235, 0.2) 0%,
+    rgba(8, 15, 30, 0.96) 42%,
+    #030b19 100%
+  );
+  --auth-overlay-primary: rgba(29, 78, 216, 0.15);
+  --auth-overlay-secondary: rgba(30, 64, 175, 0.12);
+  --auth-logo-bg: rgba(15, 34, 63, 0.8);
+  --auth-logo-border: rgba(29, 78, 216, 0.3);
+  --auth-brand-primary: #f1f5f9;
+  --auth-brand-accent: #3b82f6;
+  --auth-text-muted: #5b7392;
+  --auth-text-placeholder: #6f88a9;
+  --auth-input-bg: #0f213d;
+  --auth-input-border: #243e61;
+  --auth-cta-bg: #367ddb;
+  --auth-cta-bg-hover: #4588e0;
+  --auth-link: #3b82f6;
+
+  background: var(--color-bg-app);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  background: var(--color-bg-app);
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--color-bg-app);
+  overflow-x: hidden;
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
+}
+
+#root,
+.App {
+  background: var(--color-bg-app);
+}
