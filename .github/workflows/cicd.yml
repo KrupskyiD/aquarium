@@ -19,6 +19,11 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USERNAME }}/aquarium-server:latest .
       - name: Publish Image to docker hub
         run: docker push ${{ secrets.DOCKER_USERNAME }}/aquarium-server:latest
+      - name: Build Client Image
+        run: |
+          cd client
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/aquarium-client:latest \
+            --build-arg VITE_BACKEND_URL='${{ secrets.VITE_BACKEND_URL }}' .
       - name: Push Client to Docker Hub
         run: docker push ${{ secrets.DOCKER_USERNAME }}/aquarium-client:latest
 
