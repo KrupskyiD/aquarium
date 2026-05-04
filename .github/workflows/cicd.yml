@@ -32,16 +32,20 @@ jobs:
           docker rm -f aquarium-server || true
           docker rm -f aquarium-client || true
 
+      - name: Start Prisma migrating
+        run: |
+          docker run --rm \
+            -e NODE_OPTIONS="--max-old-space-size=512" \
+            -e DATABASE_URL='${{ secrets.DATABASE_URL }}' \
+            ${{ secrets.DOCKER_USERNAME }}/aquarium-server:latest \
+            npx prisma migrate deploy
+
       - name: Start Server container
         run: |
           docker run -d -p 3001:3001 --name aquarium-server \
             -e DATABASE_URL='${{ secrets.DATABASE_URL }}' \
             -e JWT_SECRET='${{ secrets.JWT_SECRET }}' \
             ${{ secrets.DOCKER_USERNAME }}/aquarium-server:latest
-
-      - name: Start Prisma migrating
-        run: |
-          docker exec aquarium-server npx prisma migrate deploy
 
       - name: starting client container
         run: |
