@@ -1,6 +1,6 @@
 
 import io from 'socket.io-client'
-const BACKEND_URL = import.meta.env.BACKEND_URL || "http://localhost:3001";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
 //getting user token for socket by main key from locall storage
 export function getToken() {
   const userToken = localStorage.getItem('saltguard.auth.session');
