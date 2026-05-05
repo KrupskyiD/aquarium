@@ -1,10 +1,28 @@
 import { CircleHelp, Lock, LogOut, UserRound } from "lucide-react";
 import { useState } from "react";
-import { SCREENS } from "../../../shared/constants/screens";
+import { useNavigate } from "react-router-dom";
 import { logoutAuth } from "../../auth/api/authApi";
 import DesktopAppLayout from "../../../shared/components/DesktopAppLayout";
 
-const ProfilePage = ({ onNavigate, authUser, accessToken, onLogout }) => {
+const RowLink = ({ icon, label, suffix, onClick, danger = false, noArrow = false }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm hover:bg-[#121a35] transition-colors"
+  >
+    {icon ? (
+      <span className="text-slate-300">{icon}</span>
+    ) : (
+      <span className="w-4" />
+    )}
+    <span className={`flex-1 ${danger ? "text-red-400" : "text-slate-200"}`}>{label}</span>
+    {suffix ? <span className="text-xs text-slate-500">{suffix}</span> : null}
+    {!noArrow ? <span className="text-slate-600">›</span> : null}
+  </button>
+);
+
+const ProfilePage = ({ authUser, accessToken, onLogout }) => {
+  const navigate = useNavigate();
   const [logoutLoading, setLogoutLoading] = useState(false);
 
   const initials =
@@ -20,23 +38,6 @@ const ProfilePage = ({ onNavigate, authUser, accessToken, onLogout }) => {
     name: authUser?.name || "Uživatel",
     email: authUser?.email || "Neznámý e-mail",
   };
-
-  const RowLink = ({ icon, label, suffix, onClick, danger = false, noArrow = false }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm hover:bg-[#121a35] transition-colors"
-    >
-      {icon ? (
-        <span className="text-slate-300">{icon}</span>
-      ) : (
-        <span className="w-4" />
-      )}
-      <span className={`flex-1 ${danger ? "text-red-400" : "text-slate-200"}`}>{label}</span>
-      {suffix ? <span className="text-xs text-slate-500">{suffix}</span> : null}
-      {!noArrow ? <span className="text-slate-600">›</span> : null}
-    </button>
-  );
 
   const handleLogout = async () => {
     if (logoutLoading) return;
@@ -54,11 +55,7 @@ const ProfilePage = ({ onNavigate, authUser, accessToken, onLogout }) => {
   };
 
   return (
-    <DesktopAppLayout
-      title="Profil"
-      activeScreen={SCREENS.PROFILE}
-      onNavigate={onNavigate}
-    >
+    <DesktopAppLayout title="Profil">
       <div className="flex items-center gap-4 mb-8">
         <div className="w-12 h-12 rounded-full border border-[#3659cc] bg-[#13214b] text-blue-200 flex items-center justify-center font-semibold">
           {user.initials}
@@ -78,12 +75,12 @@ const ProfilePage = ({ onNavigate, authUser, accessToken, onLogout }) => {
             <RowLink
               icon={<UserRound size={16} />}
               label="Upravit profil"
-              onClick={() => onNavigate?.(SCREENS.EDIT_PROFILE)}
+              onClick={() => navigate("/profile/edit")}
             />
             <RowLink
               icon={<Lock size={16} />}
               label="Změnit heslo"
-              onClick={() => onNavigate?.(SCREENS.CHANGE_PASSWORD)}
+              onClick={() => navigate("/profile/password")}
             />
           </div>
         </section>
@@ -97,7 +94,7 @@ const ProfilePage = ({ onNavigate, authUser, accessToken, onLogout }) => {
               icon={<CircleHelp size={16} />}
               label="O aplikaci"
               suffix="v1.0.0"
-              onClick={() => onNavigate?.(SCREENS.ABOUT_APP)}
+              onClick={() => navigate("/profile/about")}
             />
             <RowLink
               icon={<LogOut size={16} />}

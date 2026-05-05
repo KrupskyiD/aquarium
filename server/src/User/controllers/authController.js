@@ -147,6 +147,7 @@ export const login = async (req, res) => {
           id: user.id,
           name: user.name,
           email: user.email,
+          is_verified: Boolean(user.is_verified),
         },
       },
     });
@@ -349,6 +350,7 @@ export const getMe = async (req, res) => {
           id: user.id,
           name: user.name,
           email: user.email,
+          is_verified: Boolean(user.is_verified),
         },
       },
     });

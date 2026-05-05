@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation, useNavigate } from "react-router-dom";
 import AuthCard from '../components/AuthCard';
 import AuthErrorAlert from '../components/AuthErrorAlert';
 import AuthFooterLink from '../components/AuthFooterLink';
@@ -7,10 +8,11 @@ import AuthInput from '../components/AuthInput';
 import AuthLayout from '../components/AuthLayout';
 import AuthPasswordInput from '../components/AuthPasswordInput';
 import AuthSubmitButton from '../components/AuthSubmitButton';
-import { SCREENS } from '../../../shared/constants/screens';
 import { loginAuth } from '../api/authApi';
 
-const LoginPage = ({ onSuccess, onNavigate }) => {
+const LoginPage = ({ onSuccess }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -46,6 +48,11 @@ const LoginPage = ({ onSuccess, onNavigate }) => {
     try {
       const response = await loginAuth({ email, password });
       onSuccess?.(response.data);
+      const fromPath = location.state?.from;
+      navigate(
+        typeof fromPath === "string" && fromPath.startsWith("/") ? fromPath : "/profile",
+        { replace: true },
+      );
     } catch (requestError) {
       if (requestError.status === 401) {
         setError(requestError.message || 'Neplatný email nebo heslo.');
@@ -104,7 +111,7 @@ const LoginPage = ({ onSuccess, onNavigate }) => {
         <AuthFooterLink
           text="Nemáte účet?"
           linkText="Registrovat se"
-          onClick={() => onNavigate?.(SCREENS.REGISTER)}
+          onClick={() => navigate("/register")}
         />
       </AuthCard>
     </AuthLayout>

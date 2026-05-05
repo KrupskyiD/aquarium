@@ -1,12 +1,13 @@
 import React, { useContext } from 'react'
-import { SCREENS } from "../../../shared/constants/screens";
+import { useNavigate } from "react-router-dom";
 import { MetricsContext } from '../../../context/MetricsContext.jsx'
 import DesktopAppLayout from "../../../shared/components/DesktopAppLayout";
 import MetricCard from '../components/MetricCard'
 import ButtonCard from '../components/ButtonCard'
 
-const MainDetail = ({ onNavigate, aquarium, onOpenMetricDetail, onOpenEdit }) => {
+const MainDetail = ({ aquarium, onOpenMetricDetail, onOpenEdit }) => {
    const { metrics: liveMetrics, history } = useContext(MetricsContext);
+   const navigate = useNavigate();
 
   const latest = aquarium?.metrics?.[0];
 
@@ -35,7 +36,7 @@ const pageContent = (
         <div className="flex items-center gap-4">
           <button
             type="button"
-            onClick={() => onNavigate(SCREENS.AQUARIUM)}
+            onClick={() => navigate("/aquarium")}
             className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700/50 bg-[#121A21]"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -91,7 +92,7 @@ const pageContent = (
           {/* header */}
           <div className="mb-8 flex items-center gap-4">
             <button 
-              onClick={() => onNavigate(SCREENS.AQUARIUM)} 
+              onClick={() => navigate("/aquarium")} 
               className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700/50 bg-[#121A21]"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -107,11 +108,7 @@ const pageContent = (
 
       {/* desktop version */}
       <div className="hidden md:block">
-        <DesktopAppLayout
-          title="Detail akvária"
-          activeScreen={SCREENS.DETAIL}
-          onNavigate={onNavigate}
-        >
+        <DesktopAppLayout title="Detail akvária">
           {pageContent}
         </DesktopAppLayout>
       </div>

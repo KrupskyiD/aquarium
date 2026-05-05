@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import AuthCard from "../components/AuthCard";
 import AuthErrorAlert from "../components/AuthErrorAlert";
 import AuthFooterLink from "../components/AuthFooterLink";
@@ -7,7 +8,6 @@ import AuthInput from "../components/AuthInput";
 import AuthLayout from "../components/AuthLayout";
 import AuthPasswordInput from "../components/AuthPasswordInput";
 import AuthSubmitButton from "../components/AuthSubmitButton";
-import { SCREENS } from "../../../shared/constants/screens";
 import { registerAuth } from "../api/authApi";
 
 const getStrength = (password) => {
@@ -29,7 +29,8 @@ const getStrength = (password) => {
   return { score, label: "Silné", color: "bg-green-500 text-green-400" };
 };
 
-const RegisterPage = ({ onSuccess, onNavigate }) => {
+const RegisterPage = () => {
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -108,10 +109,13 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
         password,
       });
 
-      onSuccess?.({
-        email: response?.data?.email || email.trim(),
-        name: response?.data?.name || name.trim(),
-        verificationToken: response?.data?.verificationToken || "",
+      navigate("/verify", {
+        replace: true,
+        state: {
+          email: response?.data?.email || email.trim(),
+          name: response?.data?.name || name.trim(),
+          verificationToken: response?.data?.verificationToken || "",
+        },
       });
     } catch (requestError) {
       if (requestError.status === 400) {
@@ -260,7 +264,7 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
         <AuthFooterLink
           text="Už máte účet?"
           linkText="Přihlásit se"
-          onClick={() => onNavigate?.(SCREENS.LOGIN)}
+          onClick={() => navigate("/login")}
         />
       </AuthCard>
     </AuthLayout>

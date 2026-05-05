@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import DesktopAppLayout from "../../../shared/components/DesktopAppLayout";
-import { SCREENS } from "../../../shared/constants/screens";
 import { changePasswordAuth } from "../../auth/api/authApi";
 
-const ChangePasswordPage = ({ onNavigate, accessToken, onPasswordChanged }) => {
+const ChangePasswordPage = ({ accessToken, onPasswordChanged }) => {
+  const navigate = useNavigate();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -53,7 +54,7 @@ const ChangePasswordPage = ({ onNavigate, accessToken, onPasswordChanged }) => {
       <header className="mb-6 flex items-center gap-3">
         <button
           type="button"
-          onClick={() => onNavigate(SCREENS.PROFILE)}
+          onClick={() => navigate("/profile")}
           aria-label="Zpět"
           className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#24335f] bg-[#0b152b] text-slate-300 transition-colors hover:text-white"
         >
@@ -122,7 +123,7 @@ const ChangePasswordPage = ({ onNavigate, accessToken, onPasswordChanged }) => {
           </button>
           <button
             type="button"
-            onClick={() => onNavigate(SCREENS.PROFILE)}
+            onClick={() => navigate("/profile")}
             className="w-full rounded-xl border border-[#2a3f73] bg-[#101a33] px-6 py-3 text-lg font-semibold text-slate-200 transition-colors hover:bg-[#162341]"
           >
             Zrušit
@@ -138,11 +139,7 @@ const ChangePasswordPage = ({ onNavigate, accessToken, onPasswordChanged }) => {
         {content}
       </section>
       <div className="hidden md:block">
-        <DesktopAppLayout
-          title="Změna hesla"
-          activeScreen={SCREENS.PROFILE}
-          onNavigate={onNavigate}
-        >
+        <DesktopAppLayout title="Změna hesla">
           {content}
         </DesktopAppLayout>
       </div>

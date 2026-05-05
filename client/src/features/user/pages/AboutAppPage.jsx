@@ -1,5 +1,5 @@
+import { useNavigate } from "react-router-dom";
 import DesktopAppLayout from "../../../shared/components/DesktopAppLayout";
-import { SCREENS } from "../../../shared/constants/screens";
 
 const appItems = [
   { label: "Název", value: "SaltGuard" },
@@ -7,13 +7,14 @@ const appItems = [
   { label: "Typ", value: "IoT monitoring akvária" },
 ];
 
-const AboutAppPage = ({ onNavigate }) => {
+const AboutAppPage = () => {
+  const navigate = useNavigate();
   const content = (
     <div className="mx-auto w-full max-w-[560px] rounded-2xl border border-[#1a2346] bg-[#0f1630] p-5 sm:p-6">
       <header className="mb-6 flex items-center gap-3">
         <button
           type="button"
-          onClick={() => onNavigate(SCREENS.PROFILE)}
+          onClick={() => navigate("/profile")}
           aria-label="Zpět"
           className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#24335f] bg-[#0b152b] text-slate-300 transition-colors hover:text-white"
         >
@@ -46,7 +47,7 @@ const AboutAppPage = ({ onNavigate }) => {
 
       <button
         type="button"
-        onClick={() => onNavigate(SCREENS.PROFILE)}
+        onClick={() => navigate("/profile")}
         className="mt-6 w-full rounded-xl border border-[#2a3f73] bg-[#101a33] px-6 py-3 text-lg font-semibold text-slate-200 transition-colors hover:bg-[#162341]"
       >
         Zpět na profil
@@ -60,11 +61,7 @@ const AboutAppPage = ({ onNavigate }) => {
         {content}
       </section>
       <div className="hidden md:block">
-        <DesktopAppLayout
-          title="O aplikaci"
-          activeScreen={SCREENS.PROFILE}
-          onNavigate={onNavigate}
-        >
+        <DesktopAppLayout title="O aplikaci">
           {content}
         </DesktopAppLayout>
       </div>

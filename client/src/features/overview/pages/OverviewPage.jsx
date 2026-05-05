@@ -1,18 +1,11 @@
 import { useState, useContext } from "react";
-import { SCREENS } from "../../../shared/constants/screens";
 import DesktopAppLayout from "../../../shared/components/DesktopAppLayout";
 import AddAquariumForm from "../components/AddAquariumForm";
 import AquariumList from "../components/AquariumList";
 import EmptyState from "../components/EmptyState";
 import { MetricsContext } from "../../../context/MetricsContext";
 
-const OverviewPage = ({
-  onNavigate,
-  onOpenDetail,
-  aquariums,
-  aquariumsLoading,
-  onAddAquarium,
-}) => {
+const OverviewPage = ({ onOpenDetail, aquariums, aquariumsLoading, onAddAquarium }) => {
   const [view, setView] = useState("list");
 
   const { metrics: liveMetrics } = useContext(MetricsContext);
@@ -61,11 +54,7 @@ const OverviewPage = ({
       </section>
 
       <div className="hidden md:block">
-        <DesktopAppLayout
-          title="Přehled akvárií"
-          activeScreen={SCREENS.AQUARIUM}
-          onNavigate={onNavigate}
-        >
+        <DesktopAppLayout title="Přehled akvárií">
           {pageContent}
         </DesktopAppLayout>
       </div>

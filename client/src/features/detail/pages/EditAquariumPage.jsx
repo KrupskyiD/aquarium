@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import DesktopAppLayout from "../../../shared/components/DesktopAppLayout";
 import DeleteConfirmationModal from "../../../shared/components/DeleteConfirmationModal";
-import { SCREENS } from "../../../shared/constants/screens";
 
-const EditAquariumPage = ({ aquarium, onNavigate, onSave, onDelete }) => {
+const EditAquariumPage = ({ aquarium, onSave, onDelete }) => {
+  const navigate = useNavigate();
   const [name, setName] = useState(aquarium?.name ?? "");
   const [volumeLiters, setVolumeLiters] = useState(
     String(aquarium?.volume ?? ""),
@@ -40,12 +41,20 @@ const EditAquariumPage = ({ aquarium, onNavigate, onSave, onDelete }) => {
     setIsModalOpen(false);
   };
 
+  const navigateBackToDetail = () => {
+    if (!aquarium?.id) {
+      navigate("/aquarium");
+      return;
+    }
+    navigate(`/aquarium/detail?aquariumId=${encodeURIComponent(String(aquarium.id))}`);
+  };
+
   const content = (
     <div className="mx-auto w-full max-w-[560px] rounded-2xl border border-[#1a2346] bg-[#0f1630] p-5 sm:p-6">
       <header className="mb-6 flex items-center gap-3">
         <button
           type="button"
-          onClick={() => onNavigate(SCREENS.DETAIL)}
+          onClick={navigateBackToDetail}
           aria-label="Zpět"
           className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#24335f] bg-[#0b152b] text-slate-300 transition-colors hover:text-white"
         >
@@ -140,7 +149,7 @@ const EditAquariumPage = ({ aquarium, onNavigate, onSave, onDelete }) => {
 
         <button
           type="button"
-          onClick={() => onNavigate(SCREENS.DETAIL)}
+          onClick={navigateBackToDetail}
           className="w-full rounded-xl border border-[#2a3f73] bg-[#101a33] px-6 py-3 text-lg font-semibold text-slate-200 transition-colors hover:bg-[#162341]"
         >
           Zrušit
@@ -161,11 +170,7 @@ const EditAquariumPage = ({ aquarium, onNavigate, onSave, onDelete }) => {
         {content}
       </section>
       <div className="hidden md:block">
-        <DesktopAppLayout
-          title="Úprava akvária"
-          activeScreen={SCREENS.DETAIL}
-          onNavigate={onNavigate}
-        >
+        <DesktopAppLayout title="Úprava akvária">
           {content}
         </DesktopAppLayout>
       </div>

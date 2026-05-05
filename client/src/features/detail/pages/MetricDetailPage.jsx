@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Area,
   AreaChart,
@@ -9,7 +10,6 @@ import {
   YAxis,
 } from "recharts";
 import DesktopAppLayout from "../../../shared/components/DesktopAppLayout";
-import { SCREENS } from "../../../shared/constants/screens";
 
 const RANGE_OPTIONS = [
   { id: "24h", label: "24h" },
@@ -131,7 +131,8 @@ const MetricTooltip = ({ active, payload, coordinate, viewBox, unit }) => {
 
 const formatNumber = (num) => Number(num).toFixed(1);
 
-const MetricDetailPage = ({ aquarium, metricType = "salinity", onNavigate }) => {
+const MetricDetailPage = ({ aquarium, metricType = "salinity" }) => {
+  const navigate = useNavigate();
   const [selectedRange, setSelectedRange] = useState("24h");
   const config = METRIC_CONFIG[metricType] ?? METRIC_CONFIG.salinity;
   const data = config.data[selectedRange];
@@ -155,7 +156,13 @@ const MetricDetailPage = ({ aquarium, metricType = "salinity", onNavigate }) => 
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => onNavigate(SCREENS.DETAIL)}
+            onClick={() => {
+              if (!aquarium?.id) {
+                navigate("/aquarium");
+                return;
+              }
+              navigate(`/aquarium/detail?aquariumId=${encodeURIComponent(String(aquarium.id))}`);
+            }}
             className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700/50 bg-[#121A21]"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -281,11 +288,7 @@ const MetricDetailPage = ({ aquarium, metricType = "salinity", onNavigate }) => 
       </section>
 
       <div className="hidden md:block">
-        <DesktopAppLayout
-          title={`Detail ${config.title.toLowerCase()}`}
-          activeScreen={SCREENS.DETAIL}
-          onNavigate={onNavigate}
-        >
+        <DesktopAppLayout title={`Detail ${config.title.toLowerCase()}`}>
           {content}
         </DesktopAppLayout>
       </div>

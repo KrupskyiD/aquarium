@@ -1,27 +1,28 @@
 import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import AuthCard from "../components/AuthCard";
 import AuthFooterLink from "../components/AuthFooterLink";
 import AuthLayout from "../components/AuthLayout";
 import AuthSecondaryButton from "../components/AuthSecondaryButton";
 import AuthStateIcon from "../components/AuthStateIcon";
 import AuthTextBlock from "../components/AuthTextBlock";
-import { SCREENS } from "../../../shared/constants/screens";
 import { resendVerificationEmail, verifyEmailToken } from "../api/authApi";
 
 const VerifyAccountPage = ({
   email,
   verificationToken,
-  onTokenUpdate,
-  onNavigate,
-  onSuccess,
 }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [resendLoading, setResendLoading] = useState(false);
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [resendSent, setResendSent] = useState(false);
   const [error, setError] = useState("");
 
   const tokenFromQuery = new URLSearchParams(window.location.search).get("token");
-  const effectiveToken = tokenFromQuery || verificationToken;
+  const effectiveToken = tokenFromQuery || verificationToken || location.state?.verificationToken;
+  const effectiveEmail = email || location.state?.email;
+  const effectiveName = location.state?.name;
 
   const handleResend = async () => {
     if (resendLoading) return;
@@ -29,9 +30,16 @@ const VerifyAccountPage = ({
     setResendSent(false);
     setError("");
     try {
-      const response = await resendVerificationEmail(email);
+      const response = await resendVerificationEmail(effectiveEmail);
       if (response?.data?.verificationToken) {
-        onTokenUpdate?.(response.data.verificationToken);
+        navigate("/verify", {
+          replace: true,
+          state: {
+            email: effectiveEmail,
+            name: effectiveName,
+            verificationToken: response.data.verificationToken,
+          },
+        });
       }
       setResendSent(true);
     } catch (requestError) {
@@ -51,7 +59,10 @@ const VerifyAccountPage = ({
     setError("");
     try {
       await verifyEmailToken(effectiveToken);
-      onSuccess?.();
+      navigate("/welcome", {
+        replace: true,
+        state: { name: effectiveName },
+      });
     } catch (requestError) {
       setError(requestError.message || "Ověření účtu se nezdařilo.");
     } finally {
@@ -65,7 +76,7 @@ const VerifyAccountPage = ({
         <AuthStateIcon type="verify" />
         <AuthTextBlock title="Ověřte svůj e-mail">
           Odeslali jsme ověřovací odkaz na{" "}
-          <span className="text-[var(--auth-link)]">{email || "vas@email.cz"}</span>
+          <span className="text-[var(--auth-link)]">{effectiveEmail || "vas@email.cz"}</span>
         </AuthTextBlock>
 
         <p className="mt-6 text-center text-sm text-[var(--auth-text-muted)] leading-relaxed max-w-[340px] mx-auto">
@@ -95,7 +106,7 @@ const VerifyAccountPage = ({
           <AuthFooterLink
             text="Špatný e-mail?"
             linkText="Změnit adresu"
-            onClick={() => onNavigate?.(SCREENS.REGISTER)}
+            onClick={() => navigate("/register")}
           />
           <button
             type="button"

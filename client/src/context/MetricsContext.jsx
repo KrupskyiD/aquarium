@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- context module exports context + provider */
 import React, {createContext, useEffect, useState} from 'react'
 import { socket, getToken } from './socket';
 

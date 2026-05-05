@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import DesktopAppLayout from "../../../shared/components/DesktopAppLayout";
-import { SCREENS } from "../../../shared/constants/screens";
 import { fetchMeAuth, updateProfileAuth } from "../../auth/api/authApi";
 
-const EditProfilePage = ({ onNavigate, accessToken, authUser, onProfileUpdated }) => {
+const EditProfilePage = ({ accessToken, authUser, onProfileUpdated }) => {
+  const navigate = useNavigate();
   const [name, setName] = useState(authUser?.name ?? "");
   const [email, setEmail] = useState(authUser?.email ?? "");
   const [loading, setLoading] = useState(false);
@@ -64,7 +65,7 @@ const EditProfilePage = ({ onNavigate, accessToken, authUser, onProfileUpdated }
       <header className="mb-6 flex items-center gap-3">
         <button
           type="button"
-          onClick={() => onNavigate(SCREENS.PROFILE)}
+          onClick={() => navigate("/profile")}
           aria-label="Zpět"
           className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#24335f] bg-[#0b152b] text-slate-300 transition-colors hover:text-white"
         >
@@ -121,7 +122,7 @@ const EditProfilePage = ({ onNavigate, accessToken, authUser, onProfileUpdated }
           </button>
           <button
             type="button"
-            onClick={() => onNavigate(SCREENS.PROFILE)}
+            onClick={() => navigate("/profile")}
             className="w-full rounded-xl border border-[#2a3f73] bg-[#101a33] px-6 py-3 text-lg font-semibold text-slate-200 transition-colors hover:bg-[#162341]"
           >
             Zrušit
@@ -137,11 +138,7 @@ const EditProfilePage = ({ onNavigate, accessToken, authUser, onProfileUpdated }
         {content}
       </section>
       <div className="hidden md:block">
-        <DesktopAppLayout
-          title="Úprava profilu"
-          activeScreen={SCREENS.PROFILE}
-          onNavigate={onNavigate}
-        >
+        <DesktopAppLayout title="Úprava profilu">
           {content}
         </DesktopAppLayout>
       </div>
