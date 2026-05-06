@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import {
   findUserByEmail,
+  findUserById,
   createUser,
   createVerificationToken,
   findVerificationToken,
@@ -11,6 +12,8 @@ import {
   updateUserVerification,
   updateUserRefreshToken,
   findUserByRefreshToken,
+  updateUserProfile,
+  updateUserPassword,
 } from "../model/userPrisma.js";
 import { sendVerificationEmail } from "../../utils/mailer.js";
 
@@ -323,6 +326,153 @@ export const logout = async (req, res) => {
     res.status(500).json({
       status: "error",
       message: "Cannot logout",
+    });
+  }
+};
+
+export const getMe = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await findUserById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      data: {
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        },
+      },
+    });
+  } catch (e) {
+    console.log(`Error fetching profile: ${e}`);
+    return res.status(500).json({
+      status: "error",
+      message: "Cannot fetch profile",
+    });
+  }
+};
+
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { name, email } = req.body;
+    const normalizedName = name?.trim();
+    const normalizedEmail = email?.trim().toLowerCase();
+
+    if (!normalizedName || !normalizedEmail) {
+      return res.status(400).json({
+        status: "error",
+        message: "Name and email are required",
+      });
+    }
+
+    const user = await findUserById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        message: "User not found",
+      });
+    }
+
+    if (normalizedEmail !== user.email) {
+      const existingUser = await findUserByEmail(normalizedEmail);
+      if (existingUser && existingUser.id !== userId) {
+        return res.status(400).json({
+          status: "error",
+          message: "User with this email already exists",
+        });
+      }
+    }
+
+    const updatedUser = await updateUserProfile(userId, {
+      name: normalizedName,
+      email: normalizedEmail,
+    });
+
+    return res.status(200).json({
+      status: "success",
+      message: "Profile updated successfully",
+      data: {
+        user: {
+          id: updatedUser.id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+        },
+      },
+    });
+  } catch (e) {
+    console.log(`Error updating profile: ${e}`);
+    return res.status(500).json({
+      status: "error",
+      message: "Cannot update profile",
+    });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        status: "error",
+        message: "Current password and new password are required",
+      });
+    }
+
+    const user = await findUserById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        message: "User not found",
+      });
+    }
+
+    const isCurrentPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password_hash,
+    );
+
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({
+        status: "error",
+        message: "Current password is invalid",
+      });
+    }
+
+    if (currentPassword === newPassword) {
+      return res.status(400).json({
+        status: "error",
+        message: "New password must be different from current password",
+      });
+    }
+
+    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+
+    await updateUserPassword(userId, newPasswordHash);
+    await updateUserRefreshToken(userId, null);
+
+    return res.status(200).json({
+      status: "success",
+      message: "Password changed successfully",
+    });
+  } catch (e) {
+    console.log(`Error changing password: ${e}`);
+    return res.status(500).json({
+      status: "error",
+      message: "Cannot change password",
     });
   }
 };

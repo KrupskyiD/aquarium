@@ -37,6 +37,7 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const [touched, setTouched] = useState({
     name: false,
     email: false,
@@ -240,6 +241,7 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
                 Souhlasím s{" "}
                 <button
                   type="button"
+                  onClick={() => setShowTermsModal(true)}
                   className="text-blue-400 hover:text-blue-300 transition underline underline-offset-2"
                 >
                   podmínkami použití
@@ -263,6 +265,56 @@ const RegisterPage = ({ onSuccess, onNavigate }) => {
           onClick={() => onNavigate?.(SCREENS.LOGIN)}
         />
       </AuthCard>
+
+      {showTermsModal ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <button
+            type="button"
+            aria-label="Zavřít podmínky"
+            className="absolute inset-0 bg-black/70"
+            onClick={() => setShowTermsModal(false)}
+          />
+          <section className="relative z-10 w-full max-w-xl rounded-2xl border border-[#24325f] bg-[#0c1430] p-5 md:p-6 text-left text-slate-200 shadow-[0_18px_50px_rgba(0,0,0,0.55)]">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <h2 className="text-lg font-semibold text-white">Podmínky použití SaltGuard</h2>
+              <button
+                type="button"
+                onClick={() => setShowTermsModal(false)}
+                className="text-slate-400 hover:text-slate-200 transition"
+              >
+                Zavřít
+              </button>
+            </div>
+
+            <div className="space-y-3 text-sm text-slate-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-1">
+              <p>
+                1. SaltGuard je informační nástroj. Uživatel je zodpovědný za finální
+                rozhodnutí při péči o akvárium.
+              </p>
+              <p>
+                2. Uživatel odpovídá za správnost zadaných údajů (jméno, e-mail, nastavení
+                zařízení a limity metrik).
+              </p>
+              <p>
+                3. Přístupové údaje jsou neveřejné. Uživatel je povinen chránit své heslo a
+                bez prodlení nahlásit podezření na zneužití účtu.
+              </p>
+              <p>
+                4. Služba může dočasně vykazovat výpadky kvůli údržbě nebo aktualizacím.
+                Krátkodobá nedostupnost není považována za porušení podmínek.
+              </p>
+              <p>
+                5. V rámci provozu jsou zpracovávány registrační údaje a provozní data
+                akvária výhradně pro účely fungování aplikace a bezpečnosti účtu.
+              </p>
+              <p>
+                6. Provozovatel si vyhrazuje právo omezit nebo zrušit účet při porušení
+                těchto podmínek nebo při pokusu o zneužití služby.
+              </p>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </AuthLayout>
   );
 };

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import "./App.css";
 import LoginPage from "./features/auth/pages/LoginPage";
 import RegisterPage from "./features/auth/pages/RegisterPage";
@@ -8,6 +9,9 @@ import MetricDetailPage from "./features/detail/pages/MetricDetailPage";
 import EditAquariumPage from "./features/detail/pages/EditAquariumPage";
 import WelcomePage from "./features/auth/pages/WelcomePage";
 import ProfilePage from "./features/user/pages/ProfilePage";
+import EditProfilePage from "./features/user/pages/EditProfilePage";
+import ChangePasswordPage from "./features/user/pages/ChangePasswordPage";
+import AboutAppPage from "./features/user/pages/AboutAppPage";
 import OverviewPage from "./features/overview/pages/OverviewPage";
 import UserBottomNav from "./shared/components/UserBottomNav";
 import { SCREENS } from "./shared/constants/screens";
@@ -21,6 +25,30 @@ import {
 } from "./features/aquarium/api/aquariumApi";
 
 const AUTH_SESSION_STORAGE_KEY = "saltguard.auth.session";
+const SCREEN_PATHS = {
+  [SCREENS.LOGIN]: "/login",
+  [SCREENS.REGISTER]: "/register",
+  [SCREENS.VERIFY_ACCOUNT]: "/verify-account",
+  [SCREENS.WELCOME]: "/welcome",
+  [SCREENS.PROFILE]: "/profile",
+  [SCREENS.EDIT_PROFILE]: "/profile/edit",
+  [SCREENS.CHANGE_PASSWORD]: "/profile/password",
+  [SCREENS.ABOUT_APP]: "/profile/about",
+  [SCREENS.AQUARIUM]: "/aquarium",
+  [SCREENS.DETAIL]: "/aquarium/detail",
+  [SCREENS.METRIC_DETAIL]: "/aquarium/metric",
+  [SCREENS.EDIT_AQUARIUM]: "/aquarium/edit",
+};
+const PATH_TO_SCREEN = Object.fromEntries(
+  Object.entries(SCREEN_PATHS).map(([screen, path]) => [path, screen]),
+);
+const BOTTOM_NAV_SCREENS = new Set([
+  SCREENS.PROFILE,
+  SCREENS.EDIT_PROFILE,
+  SCREENS.CHANGE_PASSWORD,
+  SCREENS.ABOUT_APP,
+  SCREENS.AQUARIUM,
+]);
 
 const parseStoredSession = () => {
   try {
@@ -32,10 +60,9 @@ const parseStoredSession = () => {
 };
 
 function App() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [authSession, setAuthSession] = useState(() => parseStoredSession());
-  const [currentScreen, setCurrentScreen] = useState(() =>
-    parseStoredSession() ? SCREENS.PROFILE : SCREENS.LOGIN,
-  );
   const [aquariums, setAquariums] = useState([]);
   const [aquariumsLoading, setAquariumsLoading] = useState(false);
   const [selectedAquarium, setSelectedAquarium] = useState(null);
@@ -54,17 +81,17 @@ function App() {
     localStorage.removeItem(AUTH_SESSION_STORAGE_KEY);
   }, [authSession]);
 
-  const effectiveScreen =
-    !authSession &&
-    (
-      currentScreen === SCREENS.PROFILE ||
-      currentScreen === SCREENS.AQUARIUM ||
-      currentScreen === SCREENS.DETAIL ||
-      currentScreen === SCREENS.METRIC_DETAIL ||
-      currentScreen === SCREENS.EDIT_AQUARIUM
-    )
-      ? SCREENS.LOGIN
-      : currentScreen;
+  const currentScreen = PATH_TO_SCREEN[location.pathname] ?? null;
+  const isAuthenticated = Boolean(authSession?.accessToken);
+
+  const navigateToScreen = useCallback(
+    (screen, options) => {
+      const path = SCREEN_PATHS[screen];
+      if (!path) return;
+      navigate(path, options);
+    },
+    [navigate],
+  );
 
   const loadAquariums = useCallback(async () => {
     if (!authSession?.accessToken) return;
@@ -78,21 +105,22 @@ function App() {
     } finally {
       setAquariumsLoading(false);
     }
-  }, [authSession?.accessToken]);
+  }, [authSession]);
 
   useEffect(() => {
-    if (!authSession?.accessToken || effectiveScreen !== SCREENS.AQUARIUM) return;
+    if (!authSession?.accessToken || currentScreen !== SCREENS.AQUARIUM) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadAquariums();
-  }, [authSession?.accessToken, effectiveScreen, loadAquariums]);
+  }, [authSession, currentScreen, loadAquariums]);
 
   const handleLoginSuccess = ({ user, accessToken, refreshToken }) => {
     setAuthSession({ user, accessToken, refreshToken });
-    setCurrentScreen(SCREENS.PROFILE);
+    navigateToScreen(SCREENS.PROFILE);
   };
 
   const handleLogout = () => {
     setAuthSession(null);
-    setCurrentScreen(SCREENS.LOGIN);
+    navigateToScreen(SCREENS.LOGIN);
     setAquariums([]);
     setSelectedAquarium(null);
   };
@@ -128,7 +156,7 @@ function App() {
           prev && prev.id === updated.id ? updated : prev,
         );
       }
-      setCurrentScreen(SCREENS.DETAIL);
+      navigateToScreen(SCREENS.DETAIL);
     } catch (err) {
       console.error(err);
     }
@@ -140,7 +168,7 @@ function App() {
       await deleteAquarium(authSession.accessToken, aquariumId);
       setAquariums((prev) => prev.filter((a) => a.id !== aquariumId));
       setSelectedAquarium(null);
-      setCurrentScreen(SCREENS.AQUARIUM);
+      navigateToScreen(SCREENS.AQUARIUM);
     } catch (err) {
       console.error(err);
     }
@@ -149,7 +177,7 @@ function App() {
   const openAquariumDetail = async (aquarium) => {
     if (!authSession?.accessToken) {
       setSelectedAquarium(aquarium);
-      setCurrentScreen(SCREENS.DETAIL);
+      navigateToScreen(SCREENS.DETAIL);
       return;
     }
     try {
@@ -159,105 +187,240 @@ function App() {
       console.error(err);
       setSelectedAquarium(aquarium);
     }
-    setCurrentScreen(SCREENS.DETAIL);
+    navigateToScreen(SCREENS.DETAIL);
   };
+
+  const showBottomNav = currentScreen ? BOTTOM_NAV_SCREENS.has(currentScreen) : false;
+  const bottomNavScreen =
+    currentScreen === SCREENS.EDIT_PROFILE ||
+    currentScreen === SCREENS.CHANGE_PASSWORD ||
+    currentScreen === SCREENS.ABOUT_APP
+      ? SCREENS.PROFILE
+      : currentScreen;
 
   return (
     <div className="App bg-[#0B1120] min-h-dvh overflow-x-hidden">
-      {effectiveScreen === SCREENS.LOGIN && (
-        <LoginPage
-          onSuccess={handleLoginSuccess}
-          onNavigate={setCurrentScreen}
-        />
-      )}
-
-      {effectiveScreen === SCREENS.REGISTER && (
-        <RegisterPage
-          onSuccess={(registrationData) => {
-            setPendingRegistration(registrationData);
-            setCurrentScreen(SCREENS.VERIFY_ACCOUNT);
-          }}
-          onNavigate={setCurrentScreen}
-        />
-      )}
-
-      {effectiveScreen === SCREENS.VERIFY_ACCOUNT && (
-        <VerifyAccountPage
-          email={pendingRegistration.email}
-          verificationToken={pendingRegistration.verificationToken}
-          onTokenUpdate={(token) =>
-            setPendingRegistration((prev) => ({
-              ...prev,
-              verificationToken: token,
-            }))
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <Navigate
+              to={isAuthenticated ? SCREEN_PATHS[SCREENS.PROFILE] : SCREEN_PATHS[SCREENS.LOGIN]}
+              replace
+            />
           }
-          onNavigate={setCurrentScreen}
-          onSuccess={() => setCurrentScreen(SCREENS.WELCOME)}
         />
-      )}
-
-      {effectiveScreen === SCREENS.WELCOME && (
-        <WelcomePage
-          name={pendingRegistration.name}
-          onContinue={() => setCurrentScreen(SCREENS.LOGIN)}
+        <Route
+          path={SCREEN_PATHS[SCREENS.LOGIN]}
+          element={
+            isAuthenticated ? (
+              <Navigate to={SCREEN_PATHS[SCREENS.PROFILE]} replace />
+            ) : (
+              <LoginPage onSuccess={handleLoginSuccess} onNavigate={navigateToScreen} />
+            )
+          }
         />
-      )}
-
-      {effectiveScreen === SCREENS.PROFILE && (
-        <ProfilePage
-          onNavigate={setCurrentScreen}
-          authUser={authSession?.user}
-          accessToken={authSession?.accessToken}
-          onLogout={handleLogout}
+        <Route
+          path={SCREEN_PATHS[SCREENS.REGISTER]}
+          element={
+            isAuthenticated ? (
+              <Navigate to={SCREEN_PATHS[SCREENS.PROFILE]} replace />
+            ) : (
+              <RegisterPage
+                onSuccess={(registrationData) => {
+                  setPendingRegistration(registrationData);
+                  navigateToScreen(SCREENS.VERIFY_ACCOUNT);
+                }}
+                onNavigate={navigateToScreen}
+              />
+            )
+          }
         />
-      )}
-      {(effectiveScreen === SCREENS.AQUARIUM || effectiveScreen === SCREENS.DETAIL) && (
-        <MetricsProvider>
-          
-        {effectiveScreen === SCREENS.AQUARIUM && (
-          <OverviewPage
-          onNavigate={setCurrentScreen}
-          aquariums={aquariums}
-          aquariumsLoading={aquariumsLoading}
-          onAddAquarium={handleAddAquarium}
-          onOpenDetail={openAquariumDetail}
-          />
-        )}
-        {effectiveScreen === SCREENS.DETAIL && (
-        <MainDetail
-          onNavigate={setCurrentScreen}
-          aquarium={selectedAquarium}
-          onOpenMetricDetail={(metricType) => {
-            setSelectedMetric(metricType);
-            setCurrentScreen(SCREENS.METRIC_DETAIL);
-          }}
-          onOpenEdit={() => setCurrentScreen(SCREENS.EDIT_AQUARIUM)}
+        <Route
+          path={SCREEN_PATHS[SCREENS.VERIFY_ACCOUNT]}
+          element={
+            isAuthenticated ? (
+              <Navigate to={SCREEN_PATHS[SCREENS.PROFILE]} replace />
+            ) : (
+              <VerifyAccountPage
+                email={pendingRegistration.email}
+                verificationToken={pendingRegistration.verificationToken}
+                onTokenUpdate={(token) =>
+                  setPendingRegistration((prev) => ({
+                    ...prev,
+                    verificationToken: token,
+                  }))
+                }
+                onNavigate={navigateToScreen}
+                onSuccess={() => navigateToScreen(SCREENS.WELCOME)}
+              />
+            )
+          }
         />
-      )}
-        </MetricsProvider>
-
-           )}
-      {(effectiveScreen === SCREENS.PROFILE ||
-        effectiveScreen === SCREENS.AQUARIUM) && (
+        <Route
+          path={SCREEN_PATHS[SCREENS.WELCOME]}
+          element={
+            isAuthenticated ? (
+              <Navigate to={SCREEN_PATHS[SCREENS.PROFILE]} replace />
+            ) : (
+              <WelcomePage
+                name={pendingRegistration.name}
+                onContinue={() => navigateToScreen(SCREENS.LOGIN)}
+              />
+            )
+          }
+        />
+        <Route
+          path={SCREEN_PATHS[SCREENS.PROFILE]}
+          element={
+            isAuthenticated ? (
+              <ProfilePage
+                onNavigate={navigateToScreen}
+                authUser={authSession?.user}
+                accessToken={authSession?.accessToken}
+                onLogout={handleLogout}
+              />
+            ) : (
+              <Navigate to={SCREEN_PATHS[SCREENS.LOGIN]} replace />
+            )
+          }
+        />
+        <Route
+          path={SCREEN_PATHS[SCREENS.EDIT_PROFILE]}
+          element={
+            isAuthenticated ? (
+              <EditProfilePage
+                onNavigate={navigateToScreen}
+                accessToken={authSession?.accessToken}
+                authUser={authSession?.user}
+                onProfileUpdated={(updatedUser) => {
+                  setAuthSession((prev) =>
+                    prev ? { ...prev, user: updatedUser } : prev,
+                  );
+                }}
+              />
+            ) : (
+              <Navigate to={SCREEN_PATHS[SCREENS.LOGIN]} replace />
+            )
+          }
+        />
+        <Route
+          path={SCREEN_PATHS[SCREENS.CHANGE_PASSWORD]}
+          element={
+            isAuthenticated ? (
+              <ChangePasswordPage
+                onNavigate={navigateToScreen}
+                accessToken={authSession?.accessToken}
+                onPasswordChanged={handleLogout}
+              />
+            ) : (
+              <Navigate to={SCREEN_PATHS[SCREENS.LOGIN]} replace />
+            )
+          }
+        />
+        <Route
+          path={SCREEN_PATHS[SCREENS.ABOUT_APP]}
+          element={
+            isAuthenticated ? (
+              <AboutAppPage onNavigate={navigateToScreen} />
+            ) : (
+              <Navigate to={SCREEN_PATHS[SCREENS.LOGIN]} replace />
+            )
+          }
+        />
+        <Route
+          path={SCREEN_PATHS[SCREENS.AQUARIUM]}
+          element={
+            isAuthenticated ? (
+              <MetricsProvider>
+                <OverviewPage
+                  onNavigate={navigateToScreen}
+                  aquariums={aquariums}
+                  aquariumsLoading={aquariumsLoading}
+                  onAddAquarium={handleAddAquarium}
+                  onOpenDetail={openAquariumDetail}
+                />
+              </MetricsProvider>
+            ) : (
+              <Navigate to={SCREEN_PATHS[SCREENS.LOGIN]} replace />
+            )
+          }
+        />
+        <Route
+          path={SCREEN_PATHS[SCREENS.DETAIL]}
+          element={
+            isAuthenticated ? (
+              selectedAquarium ? (
+                <MetricsProvider>
+                  <MainDetail
+                    onNavigate={navigateToScreen}
+                    aquarium={selectedAquarium}
+                    onOpenMetricDetail={(metricType) => {
+                      setSelectedMetric(metricType);
+                      navigateToScreen(SCREENS.METRIC_DETAIL);
+                    }}
+                    onOpenEdit={() => navigateToScreen(SCREENS.EDIT_AQUARIUM)}
+                  />
+                </MetricsProvider>
+              ) : (
+                <Navigate to={SCREEN_PATHS[SCREENS.AQUARIUM]} replace />
+              )
+            ) : (
+              <Navigate to={SCREEN_PATHS[SCREENS.LOGIN]} replace />
+            )
+          }
+        />
+        <Route
+          path={SCREEN_PATHS[SCREENS.METRIC_DETAIL]}
+          element={
+            isAuthenticated ? (
+              selectedAquarium ? (
+                <MetricDetailPage
+                  aquarium={selectedAquarium}
+                  metricType={selectedMetric}
+                  onNavigate={navigateToScreen}
+                />
+              ) : (
+                <Navigate to={SCREEN_PATHS[SCREENS.AQUARIUM]} replace />
+              )
+            ) : (
+              <Navigate to={SCREEN_PATHS[SCREENS.LOGIN]} replace />
+            )
+          }
+        />
+        <Route
+          path={SCREEN_PATHS[SCREENS.EDIT_AQUARIUM]}
+          element={
+            isAuthenticated ? (
+              selectedAquarium ? (
+                <EditAquariumPage
+                  aquarium={selectedAquarium}
+                  onNavigate={navigateToScreen}
+                  onSave={handleSaveAquarium}
+                  onDelete={handleDeleteAquarium}
+                />
+              ) : (
+                <Navigate to={SCREEN_PATHS[SCREENS.AQUARIUM]} replace />
+              )
+            ) : (
+              <Navigate to={SCREEN_PATHS[SCREENS.LOGIN]} replace />
+            )
+          }
+        />
+        <Route
+          path="*"
+          element={
+            <Navigate
+              to={isAuthenticated ? SCREEN_PATHS[SCREENS.PROFILE] : SCREEN_PATHS[SCREENS.LOGIN]}
+              replace
+            />
+          }
+        />
+      </Routes>
+      {showBottomNav && (
         <UserBottomNav
-          currentScreen={effectiveScreen}
-          onNavigate={setCurrentScreen}
-        />
-      )}
-      
-      {effectiveScreen === SCREENS.METRIC_DETAIL && (
-        <MetricDetailPage
-          aquarium={selectedAquarium}
-          metricType={selectedMetric}
-          onNavigate={setCurrentScreen}
-        />
-      )}
-      {effectiveScreen === SCREENS.EDIT_AQUARIUM && (
-        <EditAquariumPage
-          aquarium={selectedAquarium}
-          onNavigate={setCurrentScreen}
-          onSave={handleSaveAquarium}
-          onDelete={handleDeleteAquarium}
+          currentScreen={bottomNavScreen}
+          onNavigate={navigateToScreen}
         />
       )}
     </div>
