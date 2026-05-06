@@ -137,6 +137,7 @@ function App() {
       await loadAquariums();
     } catch (err) {
       console.error(err);
+      throw err;
     }
   };
 
