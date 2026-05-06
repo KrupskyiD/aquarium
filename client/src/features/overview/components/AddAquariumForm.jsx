@@ -7,6 +7,8 @@ const AddAquariumForm = ({ onCancel, onAdd }) => {
   const [volumeLiters, setVolumeLiters] = useState("");
   const [aquariumType, setAquariumType] = useState("marine");
   const [deviceNumber, setDeviceNumber] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const isVolumeValid = useMemo(() => /^\d+$/.test(volumeLiters) && Number(volumeLiters) > 0, [volumeLiters]);
 
@@ -15,8 +17,9 @@ const AddAquariumForm = ({ onCancel, onAdd }) => {
     setVolumeLiters(numericValue);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    if (submitting) return;
 
     const formData = {
       name: name.trim(),
@@ -25,7 +28,15 @@ const AddAquariumForm = ({ onCancel, onAdd }) => {
       device_number: deviceNumber.trim(),
     };
 
-    onAdd?.(formData);
+    setSubmitError("");
+    setSubmitting(true);
+    try {
+      await onAdd?.(formData);
+    } catch (error) {
+      setSubmitError(error?.message || "Přidání akvária se nepodařilo.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -131,11 +142,20 @@ const AddAquariumForm = ({ onCancel, onAdd }) => {
         </div>
       </div>
 
+      {submitError ? (
+        <p className="mt-4 rounded-lg border border-red-500/40 bg-red-900/20 px-3 py-2 text-sm text-red-300">
+          {submitError}
+        </p>
+      ) : null}
+
       <div className="mt-8 space-y-3">
-        <Button type="submit">Přidat a připojit</Button>
+        <Button type="submit" disabled={submitting}>
+          {submitting ? "Přidávám..." : "Přidat a připojit"}
+        </Button>
         <button
           type="button"
           onClick={onCancel}
+          disabled={submitting}
           className="w-full rounded-xl border border-[#2a3f73] bg-[#101a33] px-6 py-3 text-base font-semibold text-slate-200 transition-colors hover:bg-[#162341]"
         >
           Zrušit
