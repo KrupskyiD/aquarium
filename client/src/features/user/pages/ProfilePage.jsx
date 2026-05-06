@@ -4,6 +4,23 @@ import { SCREENS } from "../../../shared/constants/screens";
 import { logoutAuth } from "../../auth/api/authApi";
 import DesktopAppLayout from "../../../shared/components/DesktopAppLayout";
 
+const RowLink = ({ icon, label, suffix, onClick, danger = false, noArrow = false }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm hover:bg-[#121a35] transition-colors"
+  >
+    {icon ? (
+      <span className="text-slate-300">{icon}</span>
+    ) : (
+      <span className="w-4" />
+    )}
+    <span className={`flex-1 ${danger ? "text-red-400" : "text-slate-200"}`}>{label}</span>
+    {suffix ? <span className="text-xs text-slate-500">{suffix}</span> : null}
+    {!noArrow ? <span className="text-slate-600">›</span> : null}
+  </button>
+);
+
 const ProfilePage = ({ onNavigate, authUser, accessToken, onLogout }) => {
   const [logoutLoading, setLogoutLoading] = useState(false);
 
@@ -20,23 +37,6 @@ const ProfilePage = ({ onNavigate, authUser, accessToken, onLogout }) => {
     name: authUser?.name || "Uživatel",
     email: authUser?.email || "Neznámý e-mail",
   };
-
-  const RowLink = ({ icon, label, suffix, onClick, danger = false, noArrow = false }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      className="w-full flex items-center gap-3 px-4 py-3 text-left text-sm hover:bg-[#121a35] transition-colors"
-    >
-      {icon ? (
-        <span className="text-slate-300">{icon}</span>
-      ) : (
-        <span className="w-4" />
-      )}
-      <span className={`flex-1 ${danger ? "text-red-400" : "text-slate-200"}`}>{label}</span>
-      {suffix ? <span className="text-xs text-slate-500">{suffix}</span> : null}
-      {!noArrow ? <span className="text-slate-600">›</span> : null}
-    </button>
-  );
 
   const handleLogout = async () => {
     if (logoutLoading) return;

@@ -12,7 +12,9 @@ const UserBottomNav = ({ currentScreen, onNavigate }) => {
       <div className="mx-auto max-w-[760px] px-4 pb-4">
         <div className="rounded-2xl border border-[#1a2346] bg-[#0d1629]/95 backdrop-blur-md shadow-[0_14px_40px_rgba(2,6,23,0.55)]">
           <div className="flex items-center justify-around py-3">
-            {tabs.map(({ id, label, icon: Icon }) => {
+            {tabs.map((tab) => {
+              const { id, label, icon } = tab;
+              const TabIcon = icon;
               const active = currentScreen === id;
 
               return (
@@ -26,7 +28,7 @@ const UserBottomNav = ({ currentScreen, onNavigate }) => {
                       : "text-slate-500 hover:text-blue-300"
                   }`}
                 >
-                  <Icon size={18} />
+                  <TabIcon size={18} />
                   <span className="text-[11px] font-semibold">{label}</span>
                 </button>
               );
