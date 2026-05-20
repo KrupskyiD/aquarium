@@ -1,14 +1,9 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import crypto from "crypto";
 import {
   findUserByEmail,
   findUserById,
   createUser,
-  createVerificationToken,
-  findVerificationToken,
-  deleteVerificationToken,
-  deleteVerificationTokensByUserId,
   updateUserVerification,
   updateUserRefreshToken,
   findUserByRefreshToken,
@@ -41,21 +36,20 @@ export const register = async (req, res) => {
 
     const password_hash = await bcrypt.hash(password, 10);
 
+    // Создаем юзера в существующей таблице users
     const user = await createUser({
       name: normalizedName,
       email: normalizedEmail,
       password_hash,
     });
 
-    const token = crypto.randomBytes(32).toString("hex");
-    const expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-    await deleteVerificationTokensByUserId(user.id);
-    await createVerificationToken({
-      token,
-      user_id: user.id,
-      expires_at,
-    });
+    // 🚀 НОВЫЙ ПОДХОД: Генерируем JWT токен для почты (живет 1 день)
+    // База данных для этого не нужна!
+    const token = jwt.sign(
+      { id: user.id }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: "1d" }
+    );
 
     let emailSent = true;
     try {
@@ -74,7 +68,6 @@ export const register = async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        // Dev fallback: allows manual verify when SMTP is not configured.
         verificationToken: process.env.NODE_ENV !== "production" ? token : undefined,
       },
     });
@@ -88,6 +81,7 @@ export const register = async (req, res) => {
 };
 
 export const login = async (req, res) => {
+  // Код логина остается БЕЗ ИЗМЕНЕНИЙ, он работает отлично
   try {
     const { email, password } = req.body;
     const normalizedEmail = email?.trim().toLowerCase();
@@ -127,13 +121,13 @@ export const login = async (req, res) => {
     const token = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: "15m" },
+      { expiresIn: "15m" }
     );
 
     const refreshToken = jwt.sign(
       { id: user.id },
       process.env.JWT_REFRESH_SECRET,
-      { expiresIn: "7d" },
+      { expiresIn: "7d" }
     );
 
     await updateUserRefreshToken(user.id, refreshToken);
@@ -186,15 +180,12 @@ export const resendVerificationEmail = async (req, res) => {
       });
     }
 
-    await deleteVerificationTokensByUserId(user.id);
-    const token = crypto.randomBytes(32).toString("hex");
-    const expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-    await createVerificationToken({
-      token,
-      user_id: user.id,
-      expires_at,
-    });
+    // 🚀 Снова используем генерацию JWT вместо базы данных
+    const token = jwt.sign(
+      { id: user.id }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: "1d" }
+    );
 
     let emailSent = true;
     try {
@@ -234,31 +225,24 @@ export const verifyEmail = async (req, res) => {
       });
     }
 
-    const verificationToken = await findVerificationToken(token);
+    // 🚀 НОВЫЙ ПОДХОД: Просто расшифровываем токен. 
+    // Если он просрочен или неверный, jwt выбросит ошибку, и мы уйдем в catch
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      
+      // Если дошли сюда, токен правильный. Обновляем статус юзера!
+      await updateUserVerification(decoded.id, true);
 
-    if (!verificationToken) {
+      res.status(200).json({
+        status: "success",
+        message: "Email verified successfully",
+      });
+    } catch (jwtError) {
       return res.status(400).json({
         status: "error",
-        message: "Invalid token",
+        message: "Invalid or expired token",
       });
     }
-
-    if (verificationToken.expires_at < new Date()) {
-      await deleteVerificationToken(token);
-      return res.status(400).json({
-        status: "error",
-        message: "Token has expired",
-      });
-    }
-
-    await updateUserVerification(verificationToken.user_id, true);
-
-    await deleteVerificationToken(token);
-
-    res.status(200).json({
-      status: "success",
-      message: "Email verified successfully",
-    });
   } catch (e) {
     console.log(`Error verifying email: ${e}`);
     res.status(500).json({
