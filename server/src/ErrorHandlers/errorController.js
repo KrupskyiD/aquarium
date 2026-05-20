@@ -27,6 +27,7 @@ const prodErrors = (res, error) => {
             message: error.message
         })
     } else {
+        console.error("Errors on the server:", error);
         res.status(500).json({
             status: 'error',
             message: 'Something went wrong! Try again later.'
