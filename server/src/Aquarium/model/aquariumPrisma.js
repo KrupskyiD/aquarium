@@ -14,7 +14,7 @@ export const getAquariumById = async (id, userId) => {
             id: parseInt(id),
             user_id: userId
         },
-        })
+    })
 }
 
 // стоврюю новий акваріум
@@ -28,6 +28,8 @@ export const createAquarium = async (data, userId) => {
             max_temp: data.max_temp,
             device_serial: data.device_serial,
             user_id: userId,
+            liters: parseInt(data.volume),
+            aquarium_type: data.type
         }
     })
 }
@@ -42,7 +44,7 @@ export const updateAquarium = async (id, data, userId) => {
     })
 }
 
-export const deleteAquarium = async (id,userId) => {
+export const deleteAquarium = async (id, userId) => {
     return await prisma.aquarium.delete({
         where: {
             id: parseInt(id),
