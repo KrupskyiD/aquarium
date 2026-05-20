@@ -21,7 +21,9 @@ const DesktopAppLayout = ({ title, activeScreen, onNavigate, children }) => {
             <div className="text-[10px] tracking-[0.14em] text-slate-500 uppercase mb-2">
               Hlavní
             </div>
-            {menuItems.map(({ id, label, icon: Icon }) => {
+            {menuItems.map((item) => {
+              const { id, label, icon } = item;
+              const MenuIcon = icon;
               const isActive = activeScreen === id;
               return (
                 <button
@@ -34,7 +36,7 @@ const DesktopAppLayout = ({ title, activeScreen, onNavigate, children }) => {
                   }`}
                   onClick={() => onNavigate?.(id)}
                 >
-                  <Icon size={14} />
+                  <MenuIcon size={14} />
                   {label}
                 </button>
               );

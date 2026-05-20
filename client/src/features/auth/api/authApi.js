@@ -57,3 +57,31 @@ export const logoutAuth = (accessToken) =>
       Authorization: `Bearer ${accessToken}`,
     },
   });
+
+export const fetchMeAuth = (accessToken) =>
+  request("/api/auth/me", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+export const updateProfileAuth = (accessToken, { name, email }) =>
+  request("/api/auth/profile", {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name, email }),
+  });
+
+export const changePasswordAuth = (accessToken, { currentPassword, newPassword }) =>
+  request("/api/auth/password", {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });

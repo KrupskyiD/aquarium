@@ -42,8 +42,8 @@ const OverviewPage = ({
     <div className="flex flex-1 items-start justify-center py-3 sm:py-6 md:py-8">
       <AddAquariumForm
         onCancel={() => setView("list")}
-        onAdd={(formData) => {
-          onAddAquarium?.(formData);
+        onAdd={async (formData) => {
+          await onAddAquarium?.(formData);
           setView("list");
         }}
       />
