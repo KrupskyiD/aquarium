@@ -64,6 +64,6 @@ model users {
 }
 
 enum water_type {
-  Mo_sk_     @map("Mořské")
-  Sladkvodn_ @map("Sladkvodní")
+  marine
+  freshwater
 }
