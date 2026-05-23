@@ -33,7 +33,13 @@ const MetricCard = ({ value, status, name, unit, onClick, graphData = [] }) => {
       : "bg-orange-500/10 border border-orange-500/20 text-orange-300";
     const statusArrow = isNormal ? "•" : "▼";
 
-    const displayData = graphData.length > 0 ? graphData : [{ value: Number(value) || 0 }];
+    const hasValue = value !== "—" && value != null && value !== "";
+    const displayData =
+      graphData.length > 0
+        ? graphData
+        : hasValue
+          ? [{ value: Number(value) }]
+          : [];
 
     return (
             <button
@@ -65,6 +71,7 @@ const MetricCard = ({ value, status, name, unit, onClick, graphData = [] }) => {
                 </div>
 
                 {/*graphs*/}
+                {displayData.length > 0 ? (
                 <div className='relative z-10 mt-auto h-12 w-full overflow-visible'>
                     <ResponsiveContainer width='100%' height='100%'>
                         <AreaChart
@@ -95,6 +102,7 @@ const MetricCard = ({ value, status, name, unit, onClick, graphData = [] }) => {
                     </ResponsiveContainer>
 
                 </div>
+                ) : null}
             </button>
     )
 }

@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
-import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import "./App.css";
 import LoginPage from "./features/auth/pages/LoginPage";
 import RegisterPage from "./features/auth/pages/RegisterPage";
 import VerifyAccountPage from "./features/auth/pages/VerifyAccountPage";
+import AquariumDetailLayout from "./features/detail/AquariumDetailLayout";
 import MainDetail from "./features/detail/pages/MainDetail";
 import MetricDetailPage from "./features/detail/pages/MetricDetailPage";
 import EditAquariumPage from "./features/detail/pages/EditAquariumPage";
@@ -330,9 +331,18 @@ function App() {
           }
         />
         <Route
-          path={SCREEN_PATHS[SCREENS.AQUARIUM]}
+          path="/aquarium"
           element={
             isAuthenticated ? (
+              <Outlet />
+            ) : (
+              <Navigate to={SCREEN_PATHS[SCREENS.LOGIN]} replace />
+            )
+          }
+        >
+          <Route
+            index
+            element={
               <MetricsProvider>
                 <OverviewPage
                   onNavigate={navigateToScreen}
@@ -342,53 +352,37 @@ function App() {
                   onOpenDetail={openAquariumDetail}
                 />
               </MetricsProvider>
-            ) : (
-              <Navigate to={SCREEN_PATHS[SCREENS.LOGIN]} replace />
-            )
-          }
-        />
-        <Route
-          path={SCREEN_PATHS[SCREENS.DETAIL]}
-          element={
-            isAuthenticated ? (
-              selectedAquarium ? (
-                <MetricsProvider>
-                  <MainDetail
-                    onNavigate={navigateToScreen}
-                    aquarium={selectedAquarium}
-                    onOpenMetricDetail={(metricType) => {
-                      setSelectedMetric(metricType);
-                      navigateToScreen(SCREENS.METRIC_DETAIL);
-                    }}
-                    onOpenEdit={() => navigateToScreen(SCREENS.EDIT_AQUARIUM)}
-                  />
-                </MetricsProvider>
-              ) : (
-                <Navigate to={SCREEN_PATHS[SCREENS.AQUARIUM]} replace />
-              )
-            ) : (
-              <Navigate to={SCREEN_PATHS[SCREENS.LOGIN]} replace />
-            )
-          }
-        />
-        <Route
-          path={SCREEN_PATHS[SCREENS.METRIC_DETAIL]}
-          element={
-            isAuthenticated ? (
-              selectedAquarium ? (
+            }
+          />
+          <Route
+            element={<AquariumDetailLayout hasAquarium={Boolean(selectedAquarium)} />}
+          >
+            <Route
+              path="detail"
+              element={
+                <MainDetail
+                  onNavigate={navigateToScreen}
+                  aquarium={selectedAquarium}
+                  onOpenMetricDetail={(metricType) => {
+                    setSelectedMetric(metricType);
+                    navigateToScreen(SCREENS.METRIC_DETAIL);
+                  }}
+                  onOpenEdit={() => navigateToScreen(SCREENS.EDIT_AQUARIUM)}
+                />
+              }
+            />
+            <Route
+              path="metric"
+              element={
                 <MetricDetailPage
                   aquarium={selectedAquarium}
                   metricType={selectedMetric}
                   onNavigate={navigateToScreen}
                 />
-              ) : (
-                <Navigate to={SCREEN_PATHS[SCREENS.AQUARIUM]} replace />
-              )
-            ) : (
-              <Navigate to={SCREEN_PATHS[SCREENS.LOGIN]} replace />
-            )
-          }
-        />
+              }
+            />
+          </Route>
+        </Route>
         <Route
           path={SCREEN_PATHS[SCREENS.EDIT_AQUARIUM]}
           element={
