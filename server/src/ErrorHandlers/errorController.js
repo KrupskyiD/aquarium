@@ -42,11 +42,11 @@ export const globalErrorHandler = (error, req, res, next) =>{
     error.statusCode = error.statusCode || 500;
     error.status = error.status || 'error';
 
-    //This part checks, which mode is installed in .env
-    if(process.env.NODE_ENV === 'development'){
-        devErrors(res, error);
-    } else if(process.env.NODE_ENV === 'production') {
     //if(error.name === 'CastError') error = castErrorHandler(error);
-    prodErrors(res, error);
-}
+
+    if (process.env.NODE_ENV === "production") {
+        prodErrors(res, error);
+    } else {
+        devErrors(res, error);
+    }
 }

@@ -6,7 +6,7 @@ import { SCREENS } from "../../../shared/constants/screens";
 const EditAquariumPage = ({ aquarium, onNavigate, onSave, onDelete }) => {
   const [name, setName] = useState(aquarium?.name ?? "");
   const [volumeLiters, setVolumeLiters] = useState(
-    String(aquarium?.volume ?? ""),
+    String(aquarium?.volume ?? aquarium?.liters ?? ""),
   );
   const [aquariumType, setAquariumType] = useState(aquarium?.type ?? "marine");
   const [isModalOpen, setIsModalOpen] = useState(false);

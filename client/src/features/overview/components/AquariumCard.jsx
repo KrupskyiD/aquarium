@@ -1,4 +1,5 @@
 import React from "react";
+import { formatAquariumSubtitle } from "../../aquarium/utils/normalizeAquarium";
 
 const SensorTile = ({ label, value, unit }) => {
   const display =
@@ -17,7 +18,6 @@ const SensorTile = ({ label, value, unit }) => {
 };
 
 const AquariumCard = ({ aquarium, onOpenDetail, liveMetrics }) => {
-  const typeLabel = aquarium.type === "marine" ? "Mořské" : "Sladkovodní";
   const latest = aquarium.metrics?.[0];
   // Логика фоллбэка, как в MainDetail
   // Важное уточнение: если у тебя будет МНОГО аквариумов, тебе нужно будет сверять 
@@ -35,16 +35,24 @@ const AquariumCard = ({ aquarium, onOpenDetail, liveMetrics }) => {
     ? Number(liveMetrics.temp)
     : latest?.temperature != null ? Number(latest.temperature) : null;
 
+  const openDetail = () => onOpenDetail?.(aquarium);
+
   return (
     <article
-      onClick={() => onOpenDetail?.(aquarium)}
-      className="cursor-pointer rounded-2xl border border-[#1f4576] bg-[#10233f] p-4 shadow-[0_16px_36px_rgba(1,10,30,0.45)] transition-colors hover:border-[#2a5e9f]"
+      role="button"
+      tabIndex={0}
+      onClick={openDetail}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openDetail();
+        }
+      }}
+      className="cursor-pointer rounded-2xl border border-[#1f4576] bg-[#10233f] p-4 shadow-[0_16px_36px_rgba(1,10,30,0.45)] transition-colors hover:border-[#2a5e9f] focus:outline-none focus:ring-2 focus:ring-blue-500/60"
     >
       <h3 className="text-lg font-bold text-white">{aquarium.name}</h3>
 
-      <p className="mt-2 text-sm text-slate-300">
-        {typeLabel} • {aquarium.volume} L
-      </p>
+      <p className="mt-2 text-sm text-slate-300">{formatAquariumSubtitle(aquarium)}</p>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
         <SensorTile label="Slanost" value={salinity} unit="ppt" />

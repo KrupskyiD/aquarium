@@ -11,14 +11,11 @@ import {
 import { MetricsContext } from "../../../context/MetricsContext";
 import { getToken } from "../../../context/socket";
 import { fetchAquariumMetrics } from "../../metrics/api/metricsApi";
+import MetricRangePicker from "../components/MetricRangePicker";
+import { resolveAquariumLiveMetrics } from "../utils/aquariumLiveMetrics";
+import { currentIsoMonth, resolvePickerRange, todayIsoDate } from "../utils/metricDateRange";
 import DesktopAppLayout from "../../../shared/components/DesktopAppLayout";
 import { SCREENS } from "../../../shared/constants/screens";
-
-const RANGE_OPTIONS = [
-  { id: "24h", label: "24h", period: "24" },
-  { id: "7d", label: "7 dní", period: "7" },
-  { id: "30d", label: "30 dní", period: "30" },
-];
 
 const METRIC_CONFIG = {
   salinity: {
@@ -28,7 +25,6 @@ const METRIC_CONFIG = {
     accentColor: "#3B82F6",
     gradientId: "detailSalinityGradient",
     target: 35,
-    historyKey: "salt",
     sensor: "salinity",
     liveKey: "salt",
   },
@@ -39,7 +35,6 @@ const METRIC_CONFIG = {
     accentColor: "#F59E0B",
     gradientId: "detailTemperatureGradient",
     target: 25,
-    historyKey: "temp",
     sensor: "temperature",
     liveKey: "temp",
   },
@@ -100,35 +95,33 @@ const hasAnyStat = (stats) =>
   );
 
 const MetricDetailPage = ({ aquarium, metricType = "salinity", onNavigate }) => {
-  const { metrics: liveMetrics, history } = useContext(MetricsContext);
-  const [selectedRange, setSelectedRange] = useState("24h");
+  const { metrics: liveMetrics } = useContext(MetricsContext);
+  const [rangeMode, setRangeMode] = useState("week");
+  const [pickDate, setPickDate] = useState(todayIsoDate);
+  const [pickMonth, setPickMonth] = useState(currentIsoMonth);
+  const [chartSeries, setChartSeries] = useState([]);
   const [apiStats, setApiStats] = useState(null);
-  const [statsLoading, setStatsLoading] = useState(false);
+  const [metricsLoading, setMetricsLoading] = useState(false);
 
   const config = METRIC_CONFIG[metricType] ?? METRIC_CONFIG.salinity;
-  const period =
-    RANGE_OPTIONS.find((range) => range.id === selectedRange)?.period ?? "24";
-
-  const historySeries = history?.[config.historyKey] ?? [];
-  const chartData = useMemo(
-    () =>
-      historySeries.map((point, index) => ({
-        label: String(index + 1),
-        value: Number(point.value),
-      })),
-    [historySeries],
+  const pickerRange = useMemo(
+    () => resolvePickerRange({ mode: rangeMode, pickDate, pickMonth }),
+    [rangeMode, pickDate, pickMonth],
   );
+  const { isThisDevice, salinityNum, tempNum } = resolveAquariumLiveMetrics(
+    aquarium,
+    liveMetrics,
+  );
+  const liveValue =
+    config.liveKey === "salt"
+      ? salinityNum
+      : tempNum;
+  const currentValue = isThisDevice && Number.isFinite(liveValue) ? liveValue : null;
 
-  const hasLiveData = liveMetrics?.limits != null;
-  const liveValue = hasLiveData ? Number(liveMetrics[config.liveKey]) : null;
-  const currentValue =
-    Number.isFinite(liveValue)
-      ? liveValue
-      : chartData.length > 0
-        ? chartData[chartData.length - 1].value
-        : null;
+  const hasChartData = chartSeries.length > 0;
 
   const stats = useMemo(() => {
+    if (!hasChartData) return null;
     if (hasAnyStat(apiStats)) {
       return {
         max: Number(apiStats.max),
@@ -136,54 +129,69 @@ const MetricDetailPage = ({ aquarium, metricType = "salinity", onNavigate }) => 
         avg: Number(apiStats.avg),
       };
     }
-    return computeStatsFromSeries(chartData);
-  }, [apiStats, chartData]);
-
-  const hasChartData = chartData.length > 0;
-  const hasData = hasChartData || currentValue != null || hasAnyStat(stats);
+    return computeStatsFromSeries(chartSeries);
+  }, [apiStats, chartSeries, hasChartData]);
 
   const trendLabel = useMemo(() => {
-    if (chartData.length < 2) return null;
-    const delta = chartData[chartData.length - 1].value - chartData[chartData.length - 2].value;
+    if (chartSeries.length < 2) return null;
+    const delta =
+      chartSeries[chartSeries.length - 1].value - chartSeries[chartSeries.length - 2].value;
     if (!Number.isFinite(delta) || Math.abs(delta) < 0.05) return null;
     const sign = delta > 0 ? "▲" : "▼";
     return `${sign} ${Math.abs(delta).toFixed(1)}`;
-  }, [chartData]);
+  }, [chartSeries]);
 
   const trendClasses =
     trendLabel?.startsWith("▲")
       ? "border border-emerald-500/30 bg-emerald-500/15 text-emerald-300"
       : "border border-orange-500/30 bg-orange-500/15 text-orange-300";
 
+  const emptyPeriodHint = "Za vybrané období nejsou uložená měření.";
+
   useEffect(() => {
     const aquariumId = aquarium?.id;
     const token = getToken();
     if (!aquariumId || !token) {
-      setApiStats(null);
       return;
     }
 
     let cancelled = false;
-    setStatsLoading(true);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- clear stale chart when range/aquarium changes
+    setChartSeries([]);
+    setApiStats(null);
+    setMetricsLoading(true);
 
     fetchAquariumMetrics(token, aquariumId, {
-      period,
+      from: pickerRange.from,
+      to: pickerRange.to,
       sensor: config.sensor,
     })
       .then((data) => {
-        if (!cancelled) setApiStats(data);
+        if (cancelled) return;
+        setApiStats(data);
+        setChartSeries(
+          Array.isArray(data?.series)
+            ? data.series.map((point) => ({
+                label: point.label,
+                value: Number(point.value),
+              }))
+            : [],
+        );
       })
       .catch(() => {
-        if (!cancelled) setApiStats(null);
+        if (!cancelled) {
+          setApiStats(null);
+          setChartSeries([]);
+        }
       })
       .finally(() => {
-        if (!cancelled) setStatsLoading(false);
+        if (!cancelled) setMetricsLoading(false);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [aquarium?.id, period, config.sensor]);
+  }, [aquarium?.id, pickerRange.from, pickerRange.to, config.sensor]);
 
   const content = (
     <div className="mx-auto flex w-full max-w-[740px] flex-col gap-5">
@@ -221,32 +229,24 @@ const MetricDetailPage = ({ aquarium, metricType = "salinity", onNavigate }) => 
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 rounded-2xl border border-slate-700/50 bg-[#0C1A28] p-1.5">
-        {RANGE_OPTIONS.map((range) => {
-          const isActive = range.id === selectedRange;
-          return (
-            <button
-              key={range.id}
-              type="button"
-              onClick={() => setSelectedRange(range.id)}
-              className={`rounded-xl px-3 py-2 text-sm font-semibold transition-colors ${
-                isActive
-                  ? "bg-[#3b82f6] text-white"
-                  : "bg-[#0f1c2e] text-slate-400 hover:text-slate-300"
-              }`}
-            >
-              {range.label}
-            </button>
-          );
-        })}
-      </div>
+      <MetricRangePicker
+        mode={rangeMode}
+        onModeChange={setRangeMode}
+        pickDate={pickDate}
+        onPickDateChange={setPickDate}
+        pickMonth={pickMonth}
+        onPickMonthChange={setPickMonth}
+        loading={metricsLoading}
+      />
 
-      {hasChartData ? (
+      {metricsLoading ? (
+        <div className="h-64 animate-pulse rounded-2xl border border-slate-700/50 bg-[#0C1A28]" />
+      ) : hasChartData ? (
         <div className="rounded-2xl border border-slate-700/50 bg-[#0C1A28] p-4">
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
-                data={chartData}
+                data={chartSeries}
                 margin={{ top: 22, right: 12, left: 12, bottom: 8 }}
               >
                 <defs>
@@ -259,7 +259,9 @@ const MetricDetailPage = ({ aquarium, metricType = "salinity", onNavigate }) => 
                   dataKey="label"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: "#51607a", fontSize: 12 }}
+                  tick={{ fill: "#51607a", fontSize: 11 }}
+                  interval="preserveStartEnd"
+                  minTickGap={28}
                 />
                 <YAxis hide domain={["dataMin - 0.3", "dataMax + 0.3"]} />
                 <ReferenceLine
@@ -296,16 +298,12 @@ const MetricDetailPage = ({ aquarium, metricType = "salinity", onNavigate }) => 
           </div>
         </div>
       ) : (
-        <div className="flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-700/60 bg-[#0C1A28] px-6 text-center">
-          <p className="text-lg font-semibold text-slate-200">Zatím žádná data</p>
-          <p className="mt-2 max-w-sm text-sm text-slate-400">
-            Po připojení senzoru a prvním měření se zde zobrazí graf. Statistiky MIN / MAX / PRŮMĚR
-            se počítají z uložených záznamů v databázi.
-          </p>
+        <div className="flex h-64 items-center justify-center rounded-2xl border border-dashed border-slate-700/60 bg-[#0C1A28] px-6 text-center">
+          <p className="text-sm text-slate-400">{emptyPeriodHint}</p>
         </div>
       )}
 
-      {hasData && hasAnyStat(stats) ? (
+      {!metricsLoading && hasChartData && hasAnyStat(stats) ? (
         <div className="grid grid-cols-3 gap-3">
           <div className="rounded-xl border border-slate-700/50 bg-[#0C1A28] p-4 text-center">
             <p className={`text-3xl font-semibold ${config.valueColor}`}>{formatNumber(stats.max)}</p>
@@ -320,8 +318,6 @@ const MetricDetailPage = ({ aquarium, metricType = "salinity", onNavigate }) => 
             <p className="mt-1 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">PRŮMĚR</p>
           </div>
         </div>
-      ) : statsLoading ? (
-        <p className="text-center text-sm text-slate-500">Načítání statistik…</p>
       ) : null}
     </div>
   );

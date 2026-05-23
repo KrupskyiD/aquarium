@@ -27,13 +27,13 @@ const ChartTooltip = ({ active, payload, unit, coordinate, viewBox }) => {
 
 const MetricCard = ({ value, status, name, unit, onClick, graphData = [] }) => {
 
-    const isNormal = status?.text === "v normě";
+    const hasValue = value !== "—" && value != null && value !== "";
+    const hasStatus = hasValue && status?.text && status.text !== "—";
+    const isNormal = hasStatus && status.text === "v normě";
     const statusColorClasses = isNormal
       ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-300"
       : "bg-orange-500/10 border border-orange-500/20 text-orange-300";
     const statusArrow = isNormal ? "•" : "▼";
-
-    const hasValue = value !== "—" && value != null && value !== "";
     const displayData =
       graphData.length > 0
         ? graphData
@@ -52,10 +52,12 @@ const MetricCard = ({ value, status, name, unit, onClick, graphData = [] }) => {
                         <span className='text-slate-400 text-xs font-semibold tracking-wider uppercase'>
                             {name}
                         </span>
+                        {hasStatus ? (
                         <div className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${statusColorClasses}`}>
                             <span className='text-[10px]'>{statusArrow}</span>
                             <span>{status.text}</span>
                         </div>
+                        ) : null}
                     </div>
                     <div className='relative z-10 flex items-end justify-between'>
                         <div className='flex items-baseline gap-1'>

@@ -24,6 +24,8 @@ import {
   updateAquarium,
   deleteAquarium,
 } from "./features/aquarium/api/aquariumApi";
+import { registerAuthSessionBridge } from "./shared/api/authSessionBridge";
+import { normalizeAquarium } from "./features/aquarium/utils/normalizeAquarium";
 
 const AUTH_SESSION_STORAGE_KEY = "saltguard.auth.session";
 const SCREEN_PATHS = {
@@ -94,6 +96,21 @@ function App() {
     [navigate],
   );
 
+  const handleLogout = useCallback(() => {
+    setAuthSession(null);
+    navigateToScreen(SCREENS.LOGIN);
+    setAquariums([]);
+    setSelectedAquarium(null);
+  }, [navigateToScreen]);
+
+  useEffect(() => {
+    registerAuthSessionBridge({
+      getSession: () => authSession,
+      setSession: setAuthSession,
+      onSessionExpired: handleLogout,
+    });
+  }, [authSession, handleLogout]);
+
   const loadAquariums = useCallback(async () => {
     if (!authSession?.accessToken) return;
     setAquariumsLoading(true);
@@ -117,13 +134,6 @@ function App() {
   const handleLoginSuccess = ({ user, accessToken, refreshToken }) => {
     setAuthSession({ user, accessToken, refreshToken });
     navigateToScreen(SCREENS.PROFILE);
-  };
-
-  const handleLogout = () => {
-    setAuthSession(null);
-    navigateToScreen(SCREENS.LOGIN);
-    setAquariums([]);
-    setSelectedAquarium(null);
   };
 
   const handleAddAquarium = async (formData) => {
@@ -184,7 +194,7 @@ function App() {
     }
     try {
       const fresh = await fetchAquariumById(authSession.accessToken, aquarium.id);
-      setSelectedAquarium(fresh ?? aquarium);
+      setSelectedAquarium(fresh ?? normalizeAquarium(aquarium));
     } catch (err) {
       console.error(err);
       setSelectedAquarium(aquarium);
@@ -355,7 +365,12 @@ function App() {
             }
           />
           <Route
-            element={<AquariumDetailLayout hasAquarium={Boolean(selectedAquarium)} />}
+            element={
+              <AquariumDetailLayout
+                hasAquarium={Boolean(selectedAquarium)}
+                aquariumId={selectedAquarium?.id}
+              />
+            }
           >
             <Route
               path="detail"

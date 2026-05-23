@@ -4,29 +4,21 @@ import { MetricsContext } from '../../../context/MetricsContext.jsx'
 import DesktopAppLayout from "../../../shared/components/DesktopAppLayout";
 import MetricCard from '../components/MetricCard'
 import ButtonCard from '../components/ButtonCard'
+import { resolveAquariumLiveMetrics } from '../utils/aquariumLiveMetrics'
 
 const MainDetail = ({ onNavigate, aquarium, onOpenMetricDetail, onOpenEdit }) => {
    const { metrics: liveMetrics, history } = useContext(MetricsContext);
-
-  const latest = aquarium?.metrics?.[0];
-
-  // Флаг: получили ли мы уже данные из сокета
-  const hasLiveData = liveMetrics && liveMetrics.limits !== null;
-
-  // Если сокет уже работает — берем его данные. Иначе — берем статику из БД
-  const salinityNum = hasLiveData ? Number(liveMetrics.salt) : (latest?.salinity != null ? Number(latest.salinity) : null);
-  const tempNum = hasLiveData ? Number(liveMetrics.temp) : (latest?.temperature != null ? Number(latest.temperature) : null);
+  const { isThisDevice, salinityNum, tempNum, limits } = resolveAquariumLiveMetrics(
+    aquarium,
+    liveMetrics,
+  );
 
   const fmt = (n) => typeof n === "number" && Number.isFinite(n) ? n.toFixed(1) : "—";
 
-  // Собираем объект для рендера
   const displayMetrics = {
     salt: fmt(salinityNum),
     temp: fmt(tempNum),
-    limits: hasLiveData ? liveMetrics.limits : {
-      salt: { text: "načítání...", difference: 0 },
-      temp: { text: "načítání...", difference: 0 },
-    },
+    limits,
   };
 
 const pageContent = (
@@ -51,7 +43,7 @@ const pageContent = (
         status={displayMetrics.limits.salt}
         name='Salinita'
         unit="ppt"
-        graphData={history.salt}
+        graphData={isThisDevice ? history.salt : []}
         onClick={() => onOpenMetricDetail?.("salinity")}
       />
       <MetricCard
@@ -59,7 +51,7 @@ const pageContent = (
         status={displayMetrics.limits.temp}
         name='Teplota'
         unit='°C'
-        graphData={history.temp}
+        graphData={isThisDevice ? history.temp : []}
         onClick={() => onOpenMetricDetail?.("temperature")}
       />
 
