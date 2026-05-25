@@ -35,14 +35,25 @@ export const createAquarium = async (data, userId) => {
 }
 
 //оновляю акваріум (додав user_id для безпеки, мб це лишнє)
-export const updateAquarium = async (id, data, userId) => {
+export const updateAquarium = async (id, data) => {
+    const updateData = {};
+
+    if (data.name != null) updateData.name = data.name;
+    if (data.volume != null) updateData.liters = parseInt(data.volume, 10);
+    if (data.type != null) updateData.aquarium_type = data.type;
+    if (data.min_salt != null) updateData.min_salt = data.min_salt;
+    if (data.max_salt != null) updateData.max_salt = data.max_salt;
+    if (data.min_temp != null) updateData.min_temp = data.min_temp;
+    if (data.max_temp != null) updateData.max_temp = data.max_temp;
+    if (data.device_serial != null) updateData.device_serial = data.device_serial;
+
     return await prisma.aquarium.update({
         where: {
-            id: parseInt(id)
+            id: parseInt(id, 10),
         },
-        data: data,
-    })
-}
+        data: updateData,
+    });
+};
 
 export const deleteAquarium = async (id, userId) => {
     return await prisma.aquarium.delete({

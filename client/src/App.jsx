@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
-import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import "./App.css";
 import LoginPage from "./features/auth/pages/LoginPage";
 import RegisterPage from "./features/auth/pages/RegisterPage";
 import VerifyAccountPage from "./features/auth/pages/VerifyAccountPage";
+import AquariumDetailLayout from "./features/detail/AquariumDetailLayout";
 import MainDetail from "./features/detail/pages/MainDetail";
 import MetricDetailPage from "./features/detail/pages/MetricDetailPage";
 import EditAquariumPage from "./features/detail/pages/EditAquariumPage";
@@ -23,6 +24,8 @@ import {
   updateAquarium,
   deleteAquarium,
 } from "./features/aquarium/api/aquariumApi";
+import { registerAuthSessionBridge } from "./shared/api/authSessionBridge";
+import { normalizeAquarium } from "./features/aquarium/utils/normalizeAquarium";
 
 const AUTH_SESSION_STORAGE_KEY = "saltguard.auth.session";
 const SCREEN_PATHS = {
@@ -93,6 +96,21 @@ function App() {
     [navigate],
   );
 
+  const handleLogout = useCallback(() => {
+    setAuthSession(null);
+    navigateToScreen(SCREENS.LOGIN);
+    setAquariums([]);
+    setSelectedAquarium(null);
+  }, [navigateToScreen]);
+
+  useEffect(() => {
+    registerAuthSessionBridge({
+      getSession: () => authSession,
+      setSession: setAuthSession,
+      onSessionExpired: handleLogout,
+    });
+  }, [authSession, handleLogout]);
+
   const loadAquariums = useCallback(async () => {
     if (!authSession?.accessToken) return;
     setAquariumsLoading(true);
@@ -116,13 +134,6 @@ function App() {
   const handleLoginSuccess = ({ user, accessToken, refreshToken }) => {
     setAuthSession({ user, accessToken, refreshToken });
     navigateToScreen(SCREENS.PROFILE);
-  };
-
-  const handleLogout = () => {
-    setAuthSession(null);
-    navigateToScreen(SCREENS.LOGIN);
-    setAquariums([]);
-    setSelectedAquarium(null);
   };
 
   const handleAddAquarium = async (formData) => {
@@ -183,7 +194,7 @@ function App() {
     }
     try {
       const fresh = await fetchAquariumById(authSession.accessToken, aquarium.id);
-      setSelectedAquarium(fresh ?? aquarium);
+      setSelectedAquarium(fresh ?? normalizeAquarium(aquarium));
     } catch (err) {
       console.error(err);
       setSelectedAquarium(aquarium);
@@ -330,9 +341,18 @@ function App() {
           }
         />
         <Route
-          path={SCREEN_PATHS[SCREENS.AQUARIUM]}
+          path="/aquarium"
           element={
             isAuthenticated ? (
+              <Outlet />
+            ) : (
+              <Navigate to={SCREEN_PATHS[SCREENS.LOGIN]} replace />
+            )
+          }
+        >
+          <Route
+            index
+            element={
               <MetricsProvider>
                 <OverviewPage
                   onNavigate={navigateToScreen}
@@ -342,53 +362,42 @@ function App() {
                   onOpenDetail={openAquariumDetail}
                 />
               </MetricsProvider>
-            ) : (
-              <Navigate to={SCREEN_PATHS[SCREENS.LOGIN]} replace />
-            )
-          }
-        />
-        <Route
-          path={SCREEN_PATHS[SCREENS.DETAIL]}
-          element={
-            isAuthenticated ? (
-              selectedAquarium ? (
-                <MetricsProvider>
-                  <MainDetail
-                    onNavigate={navigateToScreen}
-                    aquarium={selectedAquarium}
-                    onOpenMetricDetail={(metricType) => {
-                      setSelectedMetric(metricType);
-                      navigateToScreen(SCREENS.METRIC_DETAIL);
-                    }}
-                    onOpenEdit={() => navigateToScreen(SCREENS.EDIT_AQUARIUM)}
-                  />
-                </MetricsProvider>
-              ) : (
-                <Navigate to={SCREEN_PATHS[SCREENS.AQUARIUM]} replace />
-              )
-            ) : (
-              <Navigate to={SCREEN_PATHS[SCREENS.LOGIN]} replace />
-            )
-          }
-        />
-        <Route
-          path={SCREEN_PATHS[SCREENS.METRIC_DETAIL]}
-          element={
-            isAuthenticated ? (
-              selectedAquarium ? (
+            }
+          />
+          <Route
+            element={
+              <AquariumDetailLayout
+                hasAquarium={Boolean(selectedAquarium)}
+                aquariumId={selectedAquarium?.id}
+              />
+            }
+          >
+            <Route
+              path="detail"
+              element={
+                <MainDetail
+                  onNavigate={navigateToScreen}
+                  aquarium={selectedAquarium}
+                  onOpenMetricDetail={(metricType) => {
+                    setSelectedMetric(metricType);
+                    navigateToScreen(SCREENS.METRIC_DETAIL);
+                  }}
+                  onOpenEdit={() => navigateToScreen(SCREENS.EDIT_AQUARIUM)}
+                />
+              }
+            />
+            <Route
+              path="metric"
+              element={
                 <MetricDetailPage
                   aquarium={selectedAquarium}
                   metricType={selectedMetric}
                   onNavigate={navigateToScreen}
                 />
-              ) : (
-                <Navigate to={SCREEN_PATHS[SCREENS.AQUARIUM]} replace />
-              )
-            ) : (
-              <Navigate to={SCREEN_PATHS[SCREENS.LOGIN]} replace />
-            )
-          }
-        />
+              }
+            />
+          </Route>
+        </Route>
         <Route
           path={SCREEN_PATHS[SCREENS.EDIT_AQUARIUM]}
           element={

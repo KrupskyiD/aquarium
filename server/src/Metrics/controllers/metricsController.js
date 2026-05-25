@@ -1,17 +1,16 @@
-import { getMetricsFromDB } from "../model/metricsPrisma.js";
+import { getMetricsFromDB, parseDateRangeQuery } from "../model/metricsPrisma.js";
 
 export const getMetrics = async (req, res) => {
   try {
     const { id } = req.params;
-    const { period, sensor } = req.query;
+    const { from, to, sensor } = req.query;
 
-    const allowedPeriods = ["24", "7", "30"];
     const allowedSensors = ["temperature", "salinity"];
 
-    if (!allowedPeriods.includes(period)) {
+    if (!from || !to) {
       return res.status(400).json({
         status: "error",
-        message: "Period must be 24, 7 or 30.",
+        message: "Query params 'from' and 'to' are required (YYYY-MM-DD).",
       });
     }
 
@@ -22,16 +21,29 @@ export const getMetrics = async (req, res) => {
       });
     }
 
-    const result = await getMetricsFromDB(id, period, sensor);
+    try {
+      parseDateRangeQuery(from, to);
+    } catch (rangeError) {
+      return res.status(400).json({
+        status: "error",
+        message: rangeError.message,
+      });
+    }
+
+    const result = await getMetricsFromDB(id, from, to, sensor);
 
     res.status(200).json({
       status: "success",
       data: {
         sensor,
-        period,
-        min: result._min[sensor],
-        max: result._max[sensor],
-        avg: result._avg[sensor],
+        from,
+        to,
+        min: result.aggregate._min[sensor],
+        max: result.aggregate._max[sensor],
+        avg: result.aggregate._avg[sensor],
+        series: result.series,
+        range: result.range,
+        granularity: result.granularity,
       },
     });
   } catch (e) {

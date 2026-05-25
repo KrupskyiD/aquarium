@@ -1,3 +1,5 @@
+import { authenticatedFetch } from "../../../shared/api/authenticatedFetch.js";
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 const buildUrl = (path) => `${API_BASE_URL}${path}`;
@@ -50,38 +52,32 @@ export const verifyEmailToken = (token) =>
     method: "GET",
   });
 
-export const logoutAuth = (accessToken) =>
-  request("/api/auth/logout", {
+export const logoutAuth = async (accessToken) => {
+  const { payload } = await authenticatedFetch("/api/auth/logout", accessToken, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
   });
+  return payload;
+};
 
-export const fetchMeAuth = (accessToken) =>
-  request("/api/auth/me", {
+export const fetchMeAuth = async (accessToken) => {
+  const { payload } = await authenticatedFetch("/api/auth/me", accessToken, {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
   });
+  return payload;
+};
 
-export const updateProfileAuth = (accessToken, { name, email }) =>
-  request("/api/auth/profile", {
+export const updateProfileAuth = async (accessToken, { name, email }) => {
+  const { payload } = await authenticatedFetch("/api/auth/profile", accessToken, {
     method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({ name, email }),
   });
+  return payload;
+};
 
-export const changePasswordAuth = (accessToken, { currentPassword, newPassword }) =>
-  request("/api/auth/password", {
+export const changePasswordAuth = async (accessToken, { currentPassword, newPassword }) => {
+  const { payload } = await authenticatedFetch("/api/auth/password", accessToken, {
     method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({ currentPassword, newPassword }),
   });
+  return payload;
+};

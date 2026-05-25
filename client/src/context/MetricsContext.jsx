@@ -9,7 +9,7 @@ export const MetricsProvider = ({children}) =>{
     const [metrics, setMetrics] = useState({ temp: null, salt: null, limits: null });
 
     //graphs history
-      const [history, setHistory] = useState({temp: [], salt: []});
+      const [history, setHistory] = useState({ deviceSerial: null, temp: [], salt: [] });
 
     //changing metrics
   useEffect(() => {
@@ -27,23 +27,27 @@ export const MetricsProvider = ({children}) =>{
     socket.connect();
 
     socket.on("dashboard-metrics", (BEmetrics) => {
-// console.log("🔥 ПРИШЛИ МЕТРИКИ С БЕКЕНДА:", BEmetrics); // for debug
-      
       setMetrics(BEmetrics);
 
       setHistory((prev) => {
-        // 1. Подстраховка: если массивов еще нет, используем пустые []
+        const deviceSerial = BEmetrics?.device_serial;
+        const prevDevice = prev?.deviceSerial;
+
+        if (deviceSerial && prevDevice && deviceSerial !== prevDevice) {
+          return {
+            deviceSerial,
+            temp: [{ value: Number(BEmetrics.temp) }],
+            salt: [{ value: Number(BEmetrics.salt) }],
+          };
+        }
+
         const safeTemp = Array.isArray(prev?.temp) ? prev.temp : [];
         const safeSalt = Array.isArray(prev?.salt) ? prev.salt : [];
 
-        // 2. Добавляем новую точку в конец массива
-        const nextTemp = [...safeTemp, { value: Number(BEmetrics.temp) }];
-        const nextSalt = [...safeSalt, { value: Number(BEmetrics.salt) }];
-
-        // 3. Возвращаем объект, обрезая длину до 20 последних точек
-        return { 
-          temp: nextTemp.slice(-20), 
-          salt: nextSalt.slice(-20) 
+        return {
+          deviceSerial: deviceSerial ?? prevDevice ?? null,
+          temp: [...safeTemp, { value: Number(BEmetrics.temp) }].slice(-20),
+          salt: [...safeSalt, { value: Number(BEmetrics.salt) }].slice(-20),
         };
       });
     });
