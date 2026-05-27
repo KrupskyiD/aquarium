@@ -1,12 +1,14 @@
-import React, { useContext } from 'react'
+import React, { useContext, useState } from 'react'
 import { SCREENS } from "../../../shared/constants/screens";
 import { MetricsContext } from '../../../context/MetricsContext.jsx'
 import DesktopAppLayout from "../../../shared/components/DesktopAppLayout";
+import DeleteConfirmationModal from "../../../shared/components/DeleteConfirmationModal";
 import MetricCard from '../components/MetricCard'
 import ButtonCard from '../components/ButtonCard'
 import { resolveAquariumLiveMetrics } from '../utils/aquariumLiveMetrics'
 
-const MainDetail = ({ onNavigate, aquarium, onOpenMetricDetail, onOpenEdit }) => {
+const MainDetail = ({ onNavigate, aquarium, onOpenMetricDetail, onOpenEdit, onDelete }) => {
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
    const { metrics: liveMetrics, history } = useContext(MetricsContext);
   const { isThisDevice, salinityNum, tempNum, limits } = resolveAquariumLiveMetrics(
     aquarium,
@@ -70,12 +72,48 @@ const pageContent = (
         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
       </svg>
     }/>
+      <button
+        type="button"
+        onClick={() => setIsDeleteModalOpen(true)}
+        className="flex w-full items-center justify-between rounded-2xl border border-[#7b2942] bg-[#2D191E] p-3 text-left transition-colors hover:bg-[#3a1522]"
+      >
+        <div className="flex min-w-0 items-center gap-4">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#4a1a2b]/60 text-[#ff5a78]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+              <path d="M10 11v6"></path>
+              <path d="M14 11v6"></path>
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+            </svg>
+          </div>
+          <span className="truncate text-[15px] font-medium text-[#ff5a78]">
+            Odebrat akvárium
+          </span>
+        </div>
+        <div className="flex shrink-0 items-center pr-1 text-[#ff5a78]/60">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </div>
+      </button>
     </div>
   );
 
 
  
+  const handleConfirmDelete = () => {
+    if (!aquarium?.id) return;
+    onDelete?.(aquarium.id);
+    setIsDeleteModalOpen(false);
+  };
+
   return (<>
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+      />
       {/* Mobile version */}
       <section className="min-h-screen bg-[#0B1120] px-5 pt-8 pb-28 text-white md:hidden">
         <div className="mx-auto flex min-h-[calc(100vh-9rem)] w-full max-w-[760px] flex-col">

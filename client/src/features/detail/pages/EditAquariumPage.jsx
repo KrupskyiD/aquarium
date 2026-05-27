@@ -1,15 +1,13 @@
 import { useMemo, useState } from "react";
 import DesktopAppLayout from "../../../shared/components/DesktopAppLayout";
-import DeleteConfirmationModal from "../../../shared/components/DeleteConfirmationModal";
 import { SCREENS } from "../../../shared/constants/screens";
 
-const EditAquariumPage = ({ aquarium, onNavigate, onSave, onDelete }) => {
+const EditAquariumPage = ({ aquarium, onNavigate, onSave }) => {
   const [name, setName] = useState(aquarium?.name ?? "");
   const [volumeLiters, setVolumeLiters] = useState(
     String(aquarium?.volume ?? aquarium?.liters ?? ""),
   );
   const [aquariumType, setAquariumType] = useState(aquarium?.type ?? "marine");
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const isFormValid = useMemo(() => {
     return name.trim().length > 0 && /^\d+$/.test(volumeLiters) && Number(volumeLiters) > 0;
@@ -28,16 +26,6 @@ const EditAquariumPage = ({ aquarium, onNavigate, onSave, onDelete }) => {
       volume: Number(volumeLiters),
       type: aquariumType,
     });
-  };
-
-  const handleDelete = () => {
-    setIsModalOpen(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (!aquarium?.id) return;
-    onDelete?.(aquarium.id);
-    setIsModalOpen(false);
   };
 
   const content = (
@@ -116,21 +104,6 @@ const EditAquariumPage = ({ aquarium, onNavigate, onSave, onDelete }) => {
       <div className="mt-8 space-y-3">
         <button
           type="button"
-          onClick={handleDelete}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#7b2942] bg-[#3a1522] px-6 py-3 text-lg font-semibold text-[#ff5a78] transition-colors hover:bg-[#4a1a2b]"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="3 6 5 6 21 6"></polyline>
-            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
-            <path d="M10 11v6"></path>
-            <path d="M14 11v6"></path>
-            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
-          </svg>
-          Odebrat akvárium
-        </button>
-
-        <button
-          type="button"
           onClick={handleSave}
           disabled={!isFormValid}
           className="w-full rounded-xl bg-[#3b82f6] px-6 py-3 text-lg font-semibold text-white transition-colors hover:bg-[#4d8fff] disabled:cursor-not-allowed disabled:opacity-60"
@@ -146,12 +119,6 @@ const EditAquariumPage = ({ aquarium, onNavigate, onSave, onDelete }) => {
           Zrušit
         </button>
       </div>
-
-      <DeleteConfirmationModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onConfirm={handleConfirmDelete}
-      />
     </div>
   );
 

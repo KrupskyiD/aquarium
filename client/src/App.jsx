@@ -204,8 +204,8 @@ function App() {
     if (!authSession?.accessToken) return;
     try {
       await deleteAquarium(authSession.accessToken, aquariumId);
-      setAquariums((prev) => prev.filter((a) => a.id !== aquariumId));
       setSelectedAquarium(null);
+      await loadAquariums();
       navigateToScreen(SCREENS.AQUARIUM);
     } catch (err) {
       console.error(err);
@@ -412,6 +412,7 @@ function App() {
                     });
                   }}
                   onOpenEdit={() => navigateToScreen(SCREENS.EDIT_AQUARIUM)}
+                  onDelete={handleDeleteAquarium}
                 />
               }
             />
@@ -436,7 +437,6 @@ function App() {
                   aquarium={selectedAquarium}
                   onNavigate={navigateToScreen}
                   onSave={handleSaveAquarium}
-                  onDelete={handleDeleteAquarium}
                 />
               ) : (
                 <Navigate to={SCREEN_PATHS[SCREENS.AQUARIUM]} replace />
