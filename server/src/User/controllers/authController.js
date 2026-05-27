@@ -11,6 +11,14 @@ import {
   updateUserPassword,
 } from "../model/userPrisma.js";
 import { sendVerificationEmail } from "../../utils/mailer.js";
+import { getClientUrl } from "../../utils/appUrls.js";
+
+const wantsHtmlResponse = (req) => (req.headers.accept || "").includes("text/html");
+
+const redirectToVerifyPage = (res, query) => {
+  const params = new URLSearchParams(query);
+  return res.redirect(302, `${getClientUrl()}/verify-account?${params.toString()}`);
+};
 
 export const register = async (req, res) => {
   try {
@@ -219,25 +227,31 @@ export const verifyEmail = async (req, res) => {
     const { token } = req.query;
 
     if (!token) {
+      if (wantsHtmlResponse(req)) {
+        return redirectToVerifyPage(res, { error: "missing_token" });
+      }
       return res.status(400).json({
         status: "error",
         message: "Token is required",
       });
     }
 
-    // 🚀 НОВЫЙ ПОДХОД: Просто расшифровываем токен. 
-    // Если он просрочен или неверный, jwt выбросит ошибку, и мы уйдем в catch
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      
-      // Если дошли сюда, токен правильный. Обновляем статус юзера!
       await updateUserVerification(decoded.id, true);
 
-      res.status(200).json({
+      if (wantsHtmlResponse(req)) {
+        return redirectToVerifyPage(res, { verified: "1" });
+      }
+
+      return res.status(200).json({
         status: "success",
         message: "Email verified successfully",
       });
     } catch (jwtError) {
+      if (wantsHtmlResponse(req)) {
+        return redirectToVerifyPage(res, { error: "invalid_token" });
+      }
       return res.status(400).json({
         status: "error",
         message: "Invalid or expired token",
@@ -245,7 +259,10 @@ export const verifyEmail = async (req, res) => {
     }
   } catch (e) {
     console.log(`Error verifying email: ${e}`);
-    res.status(500).json({
+    if (wantsHtmlResponse(req)) {
+      return redirectToVerifyPage(res, { error: "server_error" });
+    }
+    return res.status(500).json({
       status: "error",
       message: "Cannot verify email",
     });

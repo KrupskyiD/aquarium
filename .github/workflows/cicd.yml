@@ -47,6 +47,7 @@ jobs:
             -e PORT=3001 \
             -e NODE_ENV='${{ secrets.NODE_ENV }}' \
             -e APP_URL='${{ secrets.APP_URL }}' \
+            -e CLIENT_URL='${{ secrets.CLIENT_URL }}' \
             -e DATABASE_URL='${{ secrets.DATABASE_URL }}' \
             -e JWT_SECRET='${{ secrets.JWT_SECRET }}' \
             -e JWT_REFRESH_SECRET='${{ secrets.JWT_REFRESH_SECRET }}' \
