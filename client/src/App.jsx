@@ -179,6 +179,10 @@ function App() {
         volume: formData.volume,
         type: formData.type,
         device_serial: formData.device_number.trim(),
+        min_salt: formData.min_salt,
+        max_salt: formData.max_salt,
+        min_temp: formData.min_temp,
+        max_temp: formData.max_temp,
       });
       await loadAquariums();
     } catch (err) {
