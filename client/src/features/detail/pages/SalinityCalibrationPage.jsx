@@ -2,6 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import DesktopAppLayout from "../../../shared/components/DesktopAppLayout";
 import { SCREENS } from "../../../shared/constants/screens";
 
+const formatCzechDate = (date = new Date()) =>
+  date.toLocaleDateString("cs-CZ", {
+    day: "numeric",
+    month: "numeric",
+    year: "numeric",
+  });
+
 const STEPS = [
   {
     key: "idle",
@@ -12,8 +19,8 @@ const STEPS = [
     timer: "",
     rows: [
       ["Senzor ID", "AS-4121"],
-      ["Poslední kalibrace", "7. 4. 2025"],
-      ["ETALON ROZTOK", "35 ppt"],
+      ["Poslední kalibrace", "27. 4. 2026"],
+      ["Příští kalibrace", "27. 5. 2026"],
     ],
     note: "Modul je připravený pro zahájení kalibrace.",
     cta: "Kalibrovat senzor",
@@ -78,7 +85,7 @@ const STEPS = [
     timer: "",
     rows: [
       ["Referenční hodnota", "35 ppt"],
-      ["Datum kalibrace", "7. 7. 2025"],
+      ["Dnešní datum kalibrace", formatCzechDate()],
       ["Přesnost senzoru", "± 0.2 ppt"],
     ],
     note: "Senzor byl úspěšně kalibrován.",
