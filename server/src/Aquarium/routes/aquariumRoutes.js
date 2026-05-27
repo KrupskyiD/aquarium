@@ -1,12 +1,13 @@
 import express from 'express';
 import * as AquariumController from "../controllers/aquariumController.js";
 import { authenticate } from "../../middleware/authMiddleware.js";
+import { createAquariumValidation, updateAquariumValidation } from "../validation/aquariumValidation.js";
 
 const router = express.Router();
 
 router.get('/', authenticate, AquariumController.getAll)
-router.post('/', authenticate, AquariumController.create)
-router.put('/:id', authenticate, AquariumController.update);
+router.post('/', authenticate, createAquariumValidation, AquariumController.create)
+router.put('/:id', authenticate, updateAquariumValidation, AquariumController.update);
 router.delete('/:id',authenticate, AquariumController.remove)
 router.get('/:id',authenticate,AquariumController.getAquariumById)
 
