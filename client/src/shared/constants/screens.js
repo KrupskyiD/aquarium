@@ -9,6 +9,7 @@ export const SCREENS = {
   ABOUT_APP: "about-app",
   AQUARIUM: "aquarium",
   DETAIL: "detail",
+  CALIBRATION: "calibration",
   METRIC_DETAIL: "metric-detail",
   EDIT_AQUARIUM: "edit-aquarium",
 };
