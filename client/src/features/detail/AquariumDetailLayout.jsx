@@ -1,7 +1,11 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useParams } from "react-router-dom";
 import { MetricsProvider } from "../../context/MetricsContext";
 const AquariumDetailLayout = ({ hasAquarium, aquariumId }) => {
-  if (!hasAquarium) {
+  const { aquariumId: routeAquariumId } = useParams();
+  const hasMatchingAquarium =
+    hasAquarium && aquariumId != null && String(aquariumId) === String(routeAquariumId);
+
+  if (!hasMatchingAquarium) {
     return <Navigate to="/aquarium" replace />;
   }
 

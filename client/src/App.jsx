@@ -8,6 +8,7 @@ import AquariumDetailLayout from "./features/detail/AquariumDetailLayout";
 import MainDetail from "./features/detail/pages/MainDetail";
 import MetricDetailPage from "./features/detail/pages/MetricDetailPage";
 import EditAquariumPage from "./features/detail/pages/EditAquariumPage";
+import SalinityCalibrationPage from "./features/detail/pages/SalinityCalibrationPage";
 import WelcomePage from "./features/auth/pages/WelcomePage";
 import ProfilePage from "./features/user/pages/ProfilePage";
 import EditProfilePage from "./features/user/pages/EditProfilePage";
@@ -38,13 +39,11 @@ const SCREEN_PATHS = {
   [SCREENS.CHANGE_PASSWORD]: "/profile/password",
   [SCREENS.ABOUT_APP]: "/profile/about",
   [SCREENS.AQUARIUM]: "/aquarium",
-  [SCREENS.DETAIL]: "/aquarium/detail",
-  [SCREENS.METRIC_DETAIL]: "/aquarium/metric",
-  [SCREENS.EDIT_AQUARIUM]: "/aquarium/edit",
+  [SCREENS.DETAIL]: "/aquarium/:aquariumId/detail",
+  [SCREENS.CALIBRATION]: "/aquarium/:aquariumId/calibration",
+  [SCREENS.METRIC_DETAIL]: "/aquarium/:aquariumId/metric",
+  [SCREENS.EDIT_AQUARIUM]: "/aquarium/:aquariumId/edit",
 };
-const PATH_TO_SCREEN = Object.fromEntries(
-  Object.entries(SCREEN_PATHS).map(([screen, path]) => [path, screen]),
-);
 const BOTTOM_NAV_SCREENS = new Set([
   SCREENS.PROFILE,
   SCREENS.EDIT_PROFILE,
@@ -60,6 +59,40 @@ const parseStoredSession = () => {
   } catch {
     return null;
   }
+};
+
+const getScreenFromPathname = (pathname) => {
+  if (pathname === SCREEN_PATHS[SCREENS.AQUARIUM]) return SCREENS.AQUARIUM;
+  if (/^\/aquarium\/[^/]+\/detail$/.test(pathname)) return SCREENS.DETAIL;
+  if (/^\/aquarium\/[^/]+\/calibration$/.test(pathname)) return SCREENS.CALIBRATION;
+  if (/^\/aquarium\/[^/]+\/metric$/.test(pathname)) return SCREENS.METRIC_DETAIL;
+  if (/^\/aquarium\/[^/]+\/edit$/.test(pathname)) return SCREENS.EDIT_AQUARIUM;
+
+  const exactMatch = Object.entries(SCREEN_PATHS).find(
+    ([screen, path]) =>
+      ![
+        SCREENS.DETAIL,
+        SCREENS.CALIBRATION,
+        SCREENS.METRIC_DETAIL,
+        SCREENS.EDIT_AQUARIUM,
+      ].includes(screen) &&
+      path === pathname,
+  );
+  return exactMatch?.[0] ?? null;
+};
+
+const buildScreenPath = (screen, params = {}) => {
+  if (
+    screen === SCREENS.DETAIL ||
+    screen === SCREENS.CALIBRATION ||
+    screen === SCREENS.METRIC_DETAIL ||
+    screen === SCREENS.EDIT_AQUARIUM
+  ) {
+    const aquariumId = params.aquariumId;
+    if (!aquariumId) return null;
+    return SCREEN_PATHS[screen].replace(":aquariumId", String(aquariumId));
+  }
+  return SCREEN_PATHS[screen] ?? null;
 };
 
 function App() {
@@ -84,16 +117,18 @@ function App() {
     localStorage.removeItem(AUTH_SESSION_STORAGE_KEY);
   }, [authSession]);
 
-  const currentScreen = PATH_TO_SCREEN[location.pathname] ?? null;
+  const currentScreen = getScreenFromPathname(location.pathname);
   const isAuthenticated = Boolean(authSession?.accessToken);
 
   const navigateToScreen = useCallback(
-    (screen, options) => {
-      const path = SCREEN_PATHS[screen];
+    (screen, options, params) => {
+      const path = buildScreenPath(screen, {
+        aquariumId: params?.aquariumId ?? selectedAquarium?.id,
+      });
       if (!path) return;
       navigate(path, options);
     },
-    [navigate],
+    [navigate, selectedAquarium?.id],
   );
 
   const handleLogout = useCallback(() => {
@@ -168,7 +203,7 @@ function App() {
           prev && prev.id === updated.id ? updated : prev,
         );
       }
-      navigateToScreen(SCREENS.DETAIL);
+      navigateToScreen(SCREENS.DETAIL, undefined, { aquariumId: updated.id });
     } catch (err) {
       console.error(err);
     }
@@ -189,7 +224,7 @@ function App() {
   const openAquariumDetail = async (aquarium) => {
     if (!authSession?.accessToken) {
       setSelectedAquarium(aquarium);
-      navigateToScreen(SCREENS.DETAIL);
+      navigateToScreen(SCREENS.DETAIL, undefined, { aquariumId: aquarium.id });
       return;
     }
     try {
@@ -199,7 +234,7 @@ function App() {
       console.error(err);
       setSelectedAquarium(aquarium);
     }
-    navigateToScreen(SCREENS.DETAIL);
+    navigateToScreen(SCREENS.DETAIL, undefined, { aquariumId: aquarium.id });
   };
 
   const showBottomNav = currentScreen ? BOTTOM_NAV_SCREENS.has(currentScreen) : false;
@@ -365,6 +400,7 @@ function App() {
             }
           />
           <Route
+            path=":aquariumId"
             element={
               <AquariumDetailLayout
                 hasAquarium={Boolean(selectedAquarium)}
@@ -380,9 +416,20 @@ function App() {
                   aquarium={selectedAquarium}
                   onOpenMetricDetail={(metricType) => {
                     setSelectedMetric(metricType);
-                    navigateToScreen(SCREENS.METRIC_DETAIL);
+                    navigateToScreen(SCREENS.METRIC_DETAIL, undefined, {
+                      aquariumId: selectedAquarium?.id,
+                    });
                   }}
                   onOpenEdit={() => navigateToScreen(SCREENS.EDIT_AQUARIUM)}
+                />
+              }
+            />
+            <Route
+              path="calibration"
+              element={
+                <SalinityCalibrationPage
+                  aquarium={selectedAquarium}
+                  onNavigate={navigateToScreen}
                 />
               }
             />

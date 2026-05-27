@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AuthCard from "../components/AuthCard";
 import AuthFooterLink from "../components/AuthFooterLink";
 import AuthLayout from "../components/AuthLayout";
@@ -7,6 +7,15 @@ import AuthStateIcon from "../components/AuthStateIcon";
 import AuthTextBlock from "../components/AuthTextBlock";
 import { SCREENS } from "../../../shared/constants/screens";
 import { resendVerificationEmail, verifyEmailToken } from "../api/authApi";
+
+const ERROR_MESSAGES = {
+  missing_token: "Ověřovací odkaz je neúplný. Požádejte o nový e-mail.",
+  invalid_token: "Odkaz vypršel nebo je neplatný. Požádejte o nový ověřovací e-mail.",
+  server_error: "Ověření se nepodařilo dokončit. Zkuste to prosím znovu.",
+};
+
+const getQueryErrorMessage = (errorCode) =>
+  ERROR_MESSAGES[errorCode] || "Ověření účtu se nezdařilo.";
 
 const VerifyAccountPage = ({
   email,
@@ -19,9 +28,16 @@ const VerifyAccountPage = ({
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [resendSent, setResendSent] = useState(false);
   const [error, setError] = useState("");
+  const autoVerifyStarted = useRef(false);
 
-  const tokenFromQuery = new URLSearchParams(window.location.search).get("token");
+  const searchParams = new URLSearchParams(window.location.search);
+  const tokenFromQuery = searchParams.get("token");
+  const verifiedFromQuery = searchParams.get("verified") === "1";
+  const errorFromQuery = searchParams.get("error");
   const effectiveToken = tokenFromQuery || verificationToken;
+
+  const queryErrorMessage = errorFromQuery ? getQueryErrorMessage(errorFromQuery) : "";
+  const displayedError = error || queryErrorMessage;
 
   const handleResend = async () => {
     if (resendLoading) return;
@@ -51,6 +67,7 @@ const VerifyAccountPage = ({
     setError("");
     try {
       await verifyEmailToken(effectiveToken);
+      window.history.replaceState({}, "", "/verify-account");
       onSuccess?.();
     } catch (requestError) {
       setError(requestError.message || "Ověření účtu se nezdařilo.");
@@ -58,6 +75,24 @@ const VerifyAccountPage = ({
       setVerifyLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (verifiedFromQuery) {
+      window.history.replaceState({}, "", "/verify-account");
+      onSuccess?.();
+      return;
+    }
+
+    if (errorFromQuery) {
+      window.history.replaceState({}, "", "/verify-account");
+      return;
+    }
+
+    if (!tokenFromQuery || autoVerifyStarted.current) return;
+    autoVerifyStarted.current = true;
+    handleVerify();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [verifiedFromQuery, errorFromQuery, tokenFromQuery]);
 
   return (
     <AuthLayout>
@@ -69,8 +104,9 @@ const VerifyAccountPage = ({
         </AuthTextBlock>
 
         <p className="mt-6 text-center text-sm text-[var(--auth-text-muted)] leading-relaxed max-w-[340px] mx-auto">
-          Klikněte na odkaz v e-mailu pro dokončení registrace. Platnost odkazu
-          vyprší za 24 hodin.
+          {verifyLoading && tokenFromQuery
+            ? "Ověřujeme váš e-mail, chvilku strpení..."
+            : "Klikněte na odkaz v e-mailu pro dokončení registrace. Platnost odkazu vyprší za 24 hodin."}
         </p>
 
         <AuthSecondaryButton
@@ -87,8 +123,8 @@ const VerifyAccountPage = ({
             Ověřovací e-mail jsme poslali znovu.
           </p>
         ) : null}
-        {error ? (
-          <p className="text-center text-sm mt-3 text-rose-400">{error}</p>
+        {displayedError ? (
+          <p className="text-center text-sm mt-3 text-rose-400">{displayedError}</p>
         ) : null}
 
         <div className="mt-6 space-y-3">
