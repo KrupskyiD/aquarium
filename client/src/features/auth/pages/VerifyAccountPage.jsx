@@ -8,6 +8,15 @@ import AuthTextBlock from "../components/AuthTextBlock";
 import { SCREENS } from "../../../shared/constants/screens";
 import { resendVerificationEmail, verifyEmailToken } from "../api/authApi";
 
+const ERROR_MESSAGES = {
+  missing_token: "Ověřovací odkaz je neúplný. Požádejte o nový e-mail.",
+  invalid_token: "Odkaz vypršel nebo je neplatný. Požádejte o nový ověřovací e-mail.",
+  server_error: "Ověření se nepodařilo dokončit. Zkuste to prosím znovu.",
+};
+
+const getQueryErrorMessage = (errorCode) =>
+  ERROR_MESSAGES[errorCode] || "Ověření účtu se nezdařilo.";
+
 const VerifyAccountPage = ({
   email,
   verificationToken,
@@ -27,11 +36,8 @@ const VerifyAccountPage = ({
   const errorFromQuery = searchParams.get("error");
   const effectiveToken = tokenFromQuery || verificationToken;
 
-  const ERROR_MESSAGES = {
-    missing_token: "Ověřovací odkaz je neúplný. Požádejte o nový e-mail.",
-    invalid_token: "Odkaz vypršel nebo je neplatný. Požádejte o nový ověřovací e-mail.",
-    server_error: "Ověření se nepodařilo dokončit. Zkuste to prosím znovu.",
-  };
+  const queryErrorMessage = errorFromQuery ? getQueryErrorMessage(errorFromQuery) : "";
+  const displayedError = error || queryErrorMessage;
 
   const handleResend = async () => {
     if (resendLoading) return;
@@ -78,7 +84,6 @@ const VerifyAccountPage = ({
     }
 
     if (errorFromQuery) {
-      setError(ERROR_MESSAGES[errorFromQuery] || "Ověření účtu se nezdařilo.");
       window.history.replaceState({}, "", "/verify-account");
       return;
     }
@@ -118,8 +123,8 @@ const VerifyAccountPage = ({
             Ověřovací e-mail jsme poslali znovu.
           </p>
         ) : null}
-        {error ? (
-          <p className="text-center text-sm mt-3 text-rose-400">{error}</p>
+        {displayedError ? (
+          <p className="text-center text-sm mt-3 text-rose-400">{displayedError}</p>
         ) : null}
 
         <div className="mt-6 space-y-3">

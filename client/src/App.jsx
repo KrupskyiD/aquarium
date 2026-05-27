@@ -8,6 +8,7 @@ import AquariumDetailLayout from "./features/detail/AquariumDetailLayout";
 import MainDetail from "./features/detail/pages/MainDetail";
 import MetricDetailPage from "./features/detail/pages/MetricDetailPage";
 import EditAquariumPage from "./features/detail/pages/EditAquariumPage";
+import SalinityCalibrationPage from "./features/detail/pages/SalinityCalibrationPage";
 import WelcomePage from "./features/auth/pages/WelcomePage";
 import ProfilePage from "./features/user/pages/ProfilePage";
 import EditProfilePage from "./features/user/pages/EditProfilePage";
@@ -39,6 +40,7 @@ const SCREEN_PATHS = {
   [SCREENS.ABOUT_APP]: "/profile/about",
   [SCREENS.AQUARIUM]: "/aquarium",
   [SCREENS.DETAIL]: "/aquarium/:aquariumId/detail",
+  [SCREENS.CALIBRATION]: "/aquarium/:aquariumId/calibration",
   [SCREENS.METRIC_DETAIL]: "/aquarium/:aquariumId/metric",
   [SCREENS.EDIT_AQUARIUM]: "/aquarium/:aquariumId/edit",
 };
@@ -62,12 +64,18 @@ const parseStoredSession = () => {
 const getScreenFromPathname = (pathname) => {
   if (pathname === SCREEN_PATHS[SCREENS.AQUARIUM]) return SCREENS.AQUARIUM;
   if (/^\/aquarium\/[^/]+\/detail$/.test(pathname)) return SCREENS.DETAIL;
+  if (/^\/aquarium\/[^/]+\/calibration$/.test(pathname)) return SCREENS.CALIBRATION;
   if (/^\/aquarium\/[^/]+\/metric$/.test(pathname)) return SCREENS.METRIC_DETAIL;
   if (/^\/aquarium\/[^/]+\/edit$/.test(pathname)) return SCREENS.EDIT_AQUARIUM;
 
   const exactMatch = Object.entries(SCREEN_PATHS).find(
     ([screen, path]) =>
-      ![SCREENS.DETAIL, SCREENS.METRIC_DETAIL, SCREENS.EDIT_AQUARIUM].includes(screen) &&
+      ![
+        SCREENS.DETAIL,
+        SCREENS.CALIBRATION,
+        SCREENS.METRIC_DETAIL,
+        SCREENS.EDIT_AQUARIUM,
+      ].includes(screen) &&
       path === pathname,
   );
   return exactMatch?.[0] ?? null;
@@ -76,6 +84,7 @@ const getScreenFromPathname = (pathname) => {
 const buildScreenPath = (screen, params = {}) => {
   if (
     screen === SCREENS.DETAIL ||
+    screen === SCREENS.CALIBRATION ||
     screen === SCREENS.METRIC_DETAIL ||
     screen === SCREENS.EDIT_AQUARIUM
   ) {
@@ -204,8 +213,8 @@ function App() {
     if (!authSession?.accessToken) return;
     try {
       await deleteAquarium(authSession.accessToken, aquariumId);
-      setAquariums((prev) => prev.filter((a) => a.id !== aquariumId));
       setSelectedAquarium(null);
+      await loadAquariums();
       navigateToScreen(SCREENS.AQUARIUM);
     } catch (err) {
       console.error(err);
@@ -412,6 +421,16 @@ function App() {
                     });
                   }}
                   onOpenEdit={() => navigateToScreen(SCREENS.EDIT_AQUARIUM)}
+                  onDelete={handleDeleteAquarium}
+                />
+              }
+            />
+            <Route
+              path="calibration"
+              element={
+                <SalinityCalibrationPage
+                  aquarium={selectedAquarium}
+                  onNavigate={navigateToScreen}
                 />
               }
             />
@@ -436,7 +455,6 @@ function App() {
                   aquarium={selectedAquarium}
                   onNavigate={navigateToScreen}
                   onSave={handleSaveAquarium}
-                  onDelete={handleDeleteAquarium}
                 />
               ) : (
                 <Navigate to={SCREEN_PATHS[SCREENS.AQUARIUM]} replace />
