@@ -60,6 +60,7 @@ jobs:
 
       - name: starting client container
         run: |
-          docker run -d -p 80:80 --name aquarium-client \
+          docker run -d -p 80:80 -p 443:443 --name aquarium-client \
+            -v /etc/letsencrypt:/etc/letsencrypt:ro \
             ${{ secrets.DOCKER_USERNAME }}/aquarium-client:latest
       
